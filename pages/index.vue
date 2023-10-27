@@ -8,7 +8,6 @@ import { toRupiah } from "../utils/toRupiah";
 import { nanoid } from "nanoid";
 import { getUserCartItemCounts } from "../utils/useCart";
 
-
 // import { useUserStore } from "~/store/user";
 
 // const {user} = useUserStore()
@@ -17,7 +16,7 @@ interface ApiResponse {
   data: Product[];
 }
 
-const { data } = await useMyFetch("/api/products");
+const { data } = await useMyFetch("/api/featured-products");
 const productData = data.value as ApiResponse;
 const products = ref<Product[]>();
 products.value = productData.data;
@@ -94,7 +93,7 @@ definePageMeta({
       >
         <template v-for="product in products">
           <NuxtLink
-            class="bg-white group cursor-pointer rounded-xl border p-3 space-y-4"
+            class="bg-white group cursor-pointer rounded-xl border p-3 space-y-2"
             :to="'/product/' + product.slug"
           >
             <div class="aspect-square rounded-xl bg-gray-100 relative">
@@ -111,6 +110,12 @@ definePageMeta({
             </div>
             <div class="flex items-center justify-between font-medium">
               {{ toRupiah(product.price) }}
+            </div>
+
+            <div
+              class="flex items-center justify-between text-slate-600 text-sm"
+            >
+              {{ product.sold }} sold
             </div>
           </NuxtLink>
         </template>

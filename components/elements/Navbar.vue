@@ -15,12 +15,16 @@ import {
   ShoppingBag,
   LogOut,
   ShoppingCart,
+  Search,
 } from "lucide-vue-next";
 import { Button } from "../ui/button";
 
 import { useUserStore } from "~/store/user";
 import { useCartStore } from "~/store/cart";
+import { useMyFetch } from "~/composables/useMyFetch";
+import { useDebounceFn } from "@vueuse/core";
 
+const router = useRouter();
 const { getUser, signOut } = useUserStore();
 const userStore = useUserStore();
 const cartStore = useCartStore();
@@ -57,6 +61,62 @@ const routes = [
 const signOutHandler = async () => {
   await signOut();
 };
+
+const searchKey = ref("");
+
+const productSuggestions = ref([
+  {
+    name: "product 1",
+    slug: "product-1",
+  },
+  {
+    name: "product 1",
+    slug: "product-1",
+  },
+  {
+    name: "product 1",
+    slug: "product-1",
+  },
+  {
+    name: "product 1",
+    slug: "product-1",
+  },
+]);
+
+interface ProductSuggestionResponse {
+  data: { name: string; slug: string }[];
+}
+
+const productSuggestionsLoading = ref(false);
+
+// debouncing when using typing in search input
+const getProductSuggestions = useDebounceFn(
+  async () => {
+    try {
+      const { data } = await useMyFetch("/api/product-suggestions", {
+        query: {
+          search: searchKey.value,
+        },
+      });
+      productSuggestionsLoading.value = false;
+      const suggestionData = data.value as ProductSuggestionResponse;
+      productSuggestions.value = suggestionData.data;
+    } catch (err) {}
+  },
+  1000,
+  {
+    maxWait: 5000,
+  }
+);
+
+const showProductSugessions = ref(false);
+
+const onSearchSubmit = () => {
+  console.log("search submit");
+  router.push({ name: "products", query: { search: searchKey.value } });
+  showProductSugessions.value = false
+};
+
 </script>
 <template>
   <header
@@ -76,6 +136,7 @@ const signOutHandler = async () => {
               :class="
                 cn('text-sm font-medium transition-colors hover:text-primary')
               "
+              @click="() => (searchKey = '')"
               >{{ route.label }}</NuxtLink
             >
           </template>
@@ -83,7 +144,61 @@ const signOutHandler = async () => {
       </nav>
     </div>
 
-    <div>
+    <div class="flex items-center gap-2">
+      <div class="relative">
+        <form @submit.prevent="onSearchSubmit" class="flex items-center px-3">
+          <Search class="mr-2 h-4 w-4 shrink-0 opacity-50" />
+          <input
+            class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            placeholder="Search products..."
+            v-model="searchKey"
+            @input="
+              () => {
+                productSuggestions = [];
+                productSuggestionsLoading = true;
+                getProductSuggestions();
+              }
+            "
+            @keyup.enter="onSearchSubmit"
+            @focus="showProductSugessions = true"
+            @blur="showProductSugessions = false"
+          />
+        </form>
+        <div
+          class="absolute bg-white w-80 shadow-sm rounded-lg top-14 p-3 border"
+          v-show="showProductSugessions"
+        >
+          <template v-for="product in productSuggestions" :key="product.slug">
+            <NuxtLink :to="'/product/' + product.slug" class="block mt-1">{{
+              product.name
+            }}</NuxtLink>
+          </template>
+
+          <p v-if="!productSuggestions.length && !productSuggestionsLoading" class="text-sm text-center">Product not exist</p>
+
+          <div
+            class="flex items-center justify-center"
+            v-show="productSuggestionsLoading"
+          >
+            <svg
+              aria-hidden="true"
+              class="w-6 h-6 text-primary/40 transition animate-spin duration-800 fill-primary"
+              viewBox="0 0 100 101"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                fill="currentColor"
+              />
+              <path
+                d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                fill="currentFill"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
       <div v-if="!userStore.user" class="flex gap-2">
         <Button variant="outline"
           ><NuxtLink to="/auth/signin">Login</NuxtLink></Button
