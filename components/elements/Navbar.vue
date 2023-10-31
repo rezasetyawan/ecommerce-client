@@ -10,6 +10,7 @@ import {
 import { ref } from "vue";
 import { cn } from "../../lib/utils";
 import {
+  Home,
   Menu,
   User2,
   ShoppingBag,
@@ -64,24 +65,7 @@ const signOutHandler = async () => {
 
 const searchKey = ref("");
 
-const productSuggestions = ref([
-  {
-    name: "product 1",
-    slug: "product-1",
-  },
-  {
-    name: "product 1",
-    slug: "product-1",
-  },
-  {
-    name: "product 1",
-    slug: "product-1",
-  },
-  {
-    name: "product 1",
-    slug: "product-1",
-  },
-]);
+const productSuggestions = ref<{ name: string; slug: string }[]>([]);
 
 interface ProductSuggestionResponse {
   data: { name: string; slug: string }[];
@@ -109,14 +93,17 @@ const getProductSuggestions = useDebounceFn(
   }
 );
 
-const showProductSugessions = ref(false);
+const showProductSuggestions = ref(false);
+
+const hideProductSuggetions = useDebounceFn(() => {
+  showProductSuggestions.value = false;
+}, 150);
 
 const onSearchSubmit = () => {
   console.log("search submit");
   router.push({ name: "products", query: { search: searchKey.value } });
-  showProductSugessions.value = false
+  showProductSuggestions.value = false;
 };
-
 </script>
 <template>
   <header
@@ -160,21 +147,28 @@ const onSearchSubmit = () => {
               }
             "
             @keyup.enter="onSearchSubmit"
-            @focus="showProductSugessions = true"
-            @blur="showProductSugessions = false"
+            @focus="showProductSuggestions = true"
+            @blur="hideProductSuggetions"
           />
         </form>
         <div
-          class="absolute bg-white w-80 shadow-sm rounded-lg top-14 p-3 border"
-          v-show="showProductSugessions"
+          class="absolute bg-white w-80 shadow-sm rounded-lg top-14 p-3 border z-[2000]"
+          v-show="showProductSuggestions"
         >
           <template v-for="product in productSuggestions" :key="product.slug">
-            <NuxtLink :to="'/product/' + product.slug" class="block mt-1">{{
-              product.name
-            }}</NuxtLink>
+            <NuxtLink
+              :to="'/product/' + product.slug"
+              class="block mt-1"
+              >{{ product.name }}</NuxtLink
+            >
           </template>
 
-          <p v-if="!productSuggestions.length && !productSuggestionsLoading" class="text-sm text-center">Product not exist</p>
+          <!-- <p
+            v-if="!productSuggestions.length && !productSuggestionsLoading"
+            class="text-sm text-center"
+          >
+            Product not exist
+          </p> -->
 
           <div
             class="flex items-center justify-center"
@@ -228,24 +222,30 @@ const onSearchSubmit = () => {
               </svg>
             </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent class="z-[1001] mr-20">
+          <DropdownMenuContent class="z-[1001] mr-20 mt-4">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
+            <!-- <DropdownMenuItem
               ><Nuxtlink :to="'/profile'" class="flex items-center gap-2"
-                ><User2 class="w-5 h-5" /> Profile</Nuxtlink
+                ><User2 class="w-5 h-5 mt-1" /> Profile</Nuxtlink
+              ></DropdownMenuItem
+            > -->
+            <DropdownMenuItem
+              ><NuxtLink :to="'/profile/address'" class="flex items-center gap-2"
+                ><Home class="w-5 h-5 mt-1" /> Address</NuxtLink
               ></DropdownMenuItem
             >
             <DropdownMenuItem
               ><Nuxtlink :to="'/profile'" class="flex items-center gap-2"
-                ><ShoppingBag class="w-5 h-5" /> My Orders</Nuxtlink
+                ><ShoppingBag class="w-5 h-5 mt-1" /> My Orders</Nuxtlink
               ></DropdownMenuItem
             >
             <DropdownMenuItem
               ><button class="flex items-center gap-2" @click="signOutHandler">
-                <LogOut class="w-5 h-5" /> Sign Out
+                <LogOut class="w-5 h-5 mt-1" /> Sign Out
               </button></DropdownMenuItem
             >
+           
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

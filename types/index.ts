@@ -31,4 +31,15 @@ interface CartItem {
     price: number
     image_url: string
 }
-export type { Product, ProductDetail, CartItem }
+
+interface Address {
+    id: string
+    name:string
+    full_address: string
+    district: string
+    city: string
+    province: string
+    phone_number: string
+    is_default: boolean
+}
+export type { Product, ProductDetail, CartItem, Address }

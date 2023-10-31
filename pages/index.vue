@@ -89,14 +89,14 @@ definePageMeta({
       <h3 class="font-bold text-3xl">Products</h3>
 
       <div
-        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
+        class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4"
       >
         <template v-for="product in products">
           <NuxtLink
-            class="bg-white group cursor-pointer rounded-xl border p-3 space-y-2"
+            class="bg-white group cursor-pointer rounded-lg border p-1.5 space-y-2 md:p-3"
             :to="'/product/' + product.slug"
           >
-            <div class="aspect-square rounded-xl bg-gray-100 relative">
+            <div class="aspect-square rounded-lg bg-gray-100 relative">
               <img
                 :src="product.image_url"
                 alt=""
@@ -105,10 +105,10 @@ definePageMeta({
               />
             </div>
             <div>
-              <p class="font-semibold text-lg">{{ product.name }}</p>
-              <p class="text-sm text-gray-500">{{ product.category }}</p>
+              <p class="font-semibold text-sm lg:text-lg">{{ product.name }}</p>
+              <p class="text-gray-500 text-sm lg:text-lg">{{ product.category }}</p>
             </div>
-            <div class="flex items-center justify-between font-medium">
+            <div class="flex items-center justify-between font-medium text-sm lg:text-lg">
               {{ toRupiah(product.price) }}
             </div>
 

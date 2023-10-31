@@ -17,6 +17,7 @@ const userStore = useUserStore();
 const cartStore = useCartStore();
 
 const supabase = useSupabaseClient();
+const router = useRouter();
 
 const cartItems = ref<CartItem[]>();
 cartItems.value = (await getCartItems(
@@ -103,6 +104,14 @@ const deleteSelectedItems = async () => {
   }
 };
 
+const checkoutHandler = () => {
+  if (!selectedItems.value?.length) {
+    return alert('please select at least one product')
+  }
+    cartStore.setSelectedCartItems(selectedItems.value);
+    router.push("/cart/shipment");
+};
+
 definePageMeta({
   layout: "my-layout",
 });
@@ -110,7 +119,7 @@ definePageMeta({
 <template>
   <section
     v-if="cartItems"
-    class="sm:flex gap-8 m-5 lg:m-10 font-rubik mb-[1200px] relative"
+    class="sm:flex gap-8 m-2 lg:m-10 font-rubik mb-[1200px] relative"
   >
     <div class="w-[75%]">
       <div class="border-b px-2">
@@ -200,7 +209,7 @@ definePageMeta({
       </div>
 
       <div class="mt-12">
-        <Button class="w-full">Buy</Button>
+        <Button class="w-full" @click="checkoutHandler">Checkout</Button>
       </div>
     </div>
   </section>
