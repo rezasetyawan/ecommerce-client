@@ -19,7 +19,8 @@ export default defineNuxtConfig({
     public: {
       SUPABASE_URL: process.env.SUPABASE_URL as string,
       API_BASE_URL: process.env.API_BASE_URL as string,
-      APP_BASE_URL: process.env.APP_BASE_URL as string
+      APP_BASE_URL: process.env.APP_BASE_URL as string,
+      RAJA_ONGKIR_API_KEY: process.env.RAJA_ONGKIR_API_KEY as string
     }
   },
 })

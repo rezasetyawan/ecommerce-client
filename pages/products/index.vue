@@ -11,26 +11,14 @@ interface ApiResponse {
 
 const supabase = useSupabaseClient();
 const route = useRoute();
-const config = useRuntimeConfig();
 
 const searchKey = ref(route.query.search as string);
-console.log(searchKey.value);
 const products = ref<Product[]>();
 
 const getProducts = async () => {
   try {
-    // const { data, error } = await useMyFetch("/api/products", {
-    //   query: {
-    //     method: "GET",
-    //     search: searchKey.value,
-    //   },
-    // });
-
-    console.log(config.public.API_BASE_URL)
-
-    const { data, error } = await useFetch("/api/products", {
+    const { data, error } = await useMyFetch("/api/products", {
       method: "GET",
-      baseURL: config.public.API_BASE_URL,
       query: {
         search: searchKey.value
       },

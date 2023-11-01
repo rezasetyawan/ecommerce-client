@@ -236,8 +236,8 @@ const onSearchSubmit = () => {
               ></DropdownMenuItem
             >
             <DropdownMenuItem
-              ><Nuxtlink :to="'/profile'" class="flex items-center gap-2"
-                ><ShoppingBag class="w-5 h-5 mt-1" /> My Orders</Nuxtlink
+              ><NuxtLink :to="'/orders'" class="flex items-center gap-2"
+                ><ShoppingBag class="w-5 h-5 mt-1" /> My Orders</NuxtLink
               ></DropdownMenuItem
             >
             <DropdownMenuItem

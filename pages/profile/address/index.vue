@@ -31,7 +31,7 @@ definePageMeta({
 <template>
   <section class="p-3">
     <div class="flex justify-end">
-      <Button>Add address</Button>
+      <Button><NuxtLink :to="'/profile/address/new'">Add address</NuxtLink></Button>
     </div>
 
     <div class="mx-40 mt-10">

@@ -42,4 +42,21 @@ interface Address {
     phone_number: string
     is_default: boolean
 }
-export type { Product, ProductDetail, CartItem, Address }
+
+interface OrderData {
+    user_id: string;
+    address_id: string;
+    total: number;
+    receipt_number?: string;
+    status: 'PENDING' | 'PAYMENT' | 'ONPROCESS' | 'SHIPPING' | 'CANCELEDED'
+    created_at: string;
+  }
+  
+  interface PaymentData {
+    order_id: string;
+    status: "PENDING" | "SUCCESS" | "EXPIRED" | "UNACTIVE";
+    amount: number;
+    struck: string;
+  }
+  
+export type { Product, ProductDetail, CartItem, Address, OrderData, PaymentData }

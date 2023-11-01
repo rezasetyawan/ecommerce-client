@@ -174,7 +174,7 @@ onMounted(async () => {
         v-model="address.province_code"
         v-if="provinceChoices"
         @update:modelValue="() => getCities()"
-        required="true"
+        required
       >
         <SelectTrigger class="mt-2">
           <SelectValue placeholder="Select province" />
@@ -197,7 +197,7 @@ onMounted(async () => {
         v-if="cityChoices"
         :disabled="!address.province_code"
         @update:modelValue="() => getDistricts()"
-        required="true"
+        required
       >
         <SelectTrigger class="mt-2">
           <SelectValue placeholder="Select city" />
@@ -219,7 +219,7 @@ onMounted(async () => {
         v-model="address.ditrict"
         v-if="districtChoices"
         :disabled="!address.city_code"
-        required="true"
+        required
       >
         <SelectTrigger class="mt-2">
           <SelectValue placeholder="Select district" />
