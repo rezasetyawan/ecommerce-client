@@ -34,7 +34,7 @@ interface CartItem {
 
 interface Address {
     id: string
-    name:string
+    name: string
     full_address: string
     district: string
     city: string
@@ -48,15 +48,15 @@ interface OrderData {
     address_id: string;
     total: number;
     receipt_number?: string;
-    status: 'PENDING' | 'PAYMENT' | 'ONPROCESS' | 'SHIPPING' | 'CANCELEDED'
+    status: "PENDING" | "PAYMENT" | "ONPROCESS" | "SHIPPING" | "CANCELLED" | "FINISHED";
     created_at: string;
-  }
-  
-  interface PaymentData {
+}
+
+interface PaymentData {
     order_id: string;
     status: "PENDING" | "SUCCESS" | "EXPIRED" | "UNACTIVE";
     amount: number;
     struck: string;
-  }
-  
+}
+
 export type { Product, ProductDetail, CartItem, Address, OrderData, PaymentData }

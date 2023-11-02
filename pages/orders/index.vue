@@ -16,7 +16,7 @@ interface Order {
   id: string;
   created_at: string;
   total: number;
-  status: "PENDING" | "ONPROCESS" | "SHIPPING" | "CANCELEDED";
+  status: "PENDING" | "PAYMENT" | "ONPROCESS" | "SHIPPING" | "CANCELLED";
   order_items: OrderItem[];
 }
 
@@ -38,8 +38,6 @@ const orders = ref<Order[]>([]);
 const ordersData = data.value as ApiResponse;
 orders.value = ordersData.data.orders;
 
-console.log(orders.value);
-
 const formatDate = (millisecondsTimestamp: string): string => {
   const dateObject = new Date(parseInt(millisecondsTimestamp));
   const options: object = {
@@ -49,6 +47,35 @@ const formatDate = (millisecondsTimestamp: string): string => {
   };
   const formattedDate = dateObject.toLocaleString(undefined, options);
   return formattedDate;
+};
+
+const getStatusMessage = (status: string) => {
+  let statusMessage: string = "";
+
+  switch (status) {
+    case "PENDING":
+      statusMessage = "Waiting confirmation.";
+      break;
+    case "PAYMENT":
+      statusMessage = "Payment";
+      break;
+    case "ONPROCESS":
+      statusMessage = "Onprocess";
+      break;
+    case "SHIPPING":
+      statusMessage = "Shipping";
+      break;
+    case "CANCELLED":
+      statusMessage = "Cancelled";
+      break;
+    case "FINISHED":
+      statusMessage = "Finished";
+      break;
+    default:
+      statusMessage = "Invalid status.";
+  }
+
+  return statusMessage;
 };
 
 definePageMeta({
@@ -61,11 +88,8 @@ definePageMeta({
       <div class="p-3 rounded-lg shadow-md">
         <div class="flex gap-3 items-center">
           <p class="font-medium">{{ formatDate(order.created_at) }}</p>
-          <p
-            v-if="order.status === 'PENDING'"
-            class="font-medium bg-slate-50 p-2 text-xs rounded-md"
-          >
-            waiting confimation
+          <p class="font-medium bg-slate-50 p-2 text-xs rounded-md">
+            {{ getStatusMessage(order.status) }}
           </p>
         </div>
         <div class="flex gap-10 mt-4">
@@ -88,43 +112,9 @@ definePageMeta({
           </div>
         </div>
         <div class="flex justify-end">
-          <Button class="px-10">Pay Now</Button>
-        </div>
-      </div>
-
-      <!-- buat test lebih dari 1 item -->
-
-      <div class="p-3 rounded-lg shadow-md">
-        <div class="flex gap-3 items-center">
-          <p class="font-medium">{{ formatDate(order.created_at) }}</p>
-          <p
-            v-if="order.status === 'PENDING'"
-            class="font-medium bg-slate-50 p-2 text-xs rounded-md"
+          <Button class="px-10" :disabled="order.status !== 'PAYMENT'"
+            ><NuxtLink :to="'/pay/' + order.id">Pay Now</NuxtLink></Button
           >
-            waiting confimation
-          </p>
-        </div>
-        <div class="flex gap-10 mt-4">
-          <div class="w-full space-y-3">
-            <template v-for="item in order.order_items" :key="item.id">
-              <div class="flex gap-3 items-center">
-                <img :src="item.image_url" class="w-20" />
-                <div class="w-full">
-                  <h2 class="text-lg font-semibold">{{ item.name }}</h2>
-                  <p>
-                    {{ item.quantity }} products x {{ toRupiah(item.price) }}
-                  </p>
-                </div>
-              </div>
-            </template>
-          </div>
-          <div class="w-full self-end">
-            <p>Subtotal</p>
-            <p class="font-medium">{{ toRupiah(order.total) }}</p>
-          </div>
-        </div>
-        <div class="flex justify-end">
-          <Button class="px-10">Pay Now</Button>
         </div>
       </div>
     </template>

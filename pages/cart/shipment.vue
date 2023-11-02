@@ -79,15 +79,6 @@ const selectedShipment = computed(() => {
 });
 const openShipmentItem = ref(false);
 
-watch(
-  selectedShipmentService,
-  () => {
-    console.log(selectedShipment.value);
-    console.log(itemsTotalPrice.value);
-  },
-  { deep: true }
-);
-
 const address = ref<Address>({
   id: "",
   name: "",
@@ -175,13 +166,10 @@ onMounted(async () => {
     supabase,
     userStore.user?.id as string
   );
-
   address.value = addressData as Address;
-  console.log(address.value);
 
   const shipmentData = await getShipmentCost();
   shipmentCost.value = shipmentData;
-  console.log(shipmentCost.value);
 });
 
 watch(openShipmentItem, () => openShipmentItem.value);
@@ -219,6 +207,32 @@ const onSubmitHandler = async () => {
       })
     );
   } catch (error) {}
+};
+
+const getStatusMessage = (status: string) => {
+  let statusMessage: string = "";
+
+  switch (status) {
+    case "PENDING":
+      statusMessage = "Waiting confirmation.";
+      break;
+    case "PAYMENT":
+      statusMessage = "Payment";
+      break;
+    case "ONPROCESS":
+      statusMessage = "Onprocess";
+      break;
+    case "SHIPPING":
+      statusMessage = "Shipping";
+      break;
+    case "CANCELLED":
+      statusMessage = "Cancelled";
+      break;
+    default:
+      statusMessage = "Invalid status.";
+  }
+
+  return statusMessage;
 };
 
 definePageMeta({
@@ -261,7 +275,6 @@ definePageMeta({
           v-model="selectedShipmentService"
           @update:open="(isOpen:boolean) => {
             openShipmentItem = isOpen
-            console.log(openShipmentItem)
           }"
         >
           <SelectTrigger class="mt-2">
@@ -287,9 +300,7 @@ definePageMeta({
                     v-show="!(selectedShipmentService === data.service)"
                   >
                     <div class="w-20">
-                      <p class="font-semibold">
-                        JNE {{ data.service }}
-                      </p>
+                      <p class="font-semibold">JNE {{ data.service }}</p>
                       <p>{{ data.etd }} days</p>
                     </div>
                     <p class="font-medium">{{ toRupiah(data.price) }}</p>
