@@ -14,8 +14,8 @@ const addImage = async (client: SupabaseClient, imageFile: File, supabaseUrl: st
 
         const url = supabaseUrl + '/storage/v1/object/public/payment-strucks/' + data?.path
         return url
-    } catch (error) {
-        console.error(error)
+    } catch (error: any) {
+        throw new Error(error.message)
     }
 }
 

@@ -2,7 +2,7 @@
 import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { toRupiah } from "~/utils/toRupiah";
-import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
+import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Button } from "~/components/ui/button";
@@ -102,9 +102,21 @@ const onSubmitHandler = async () => {
     if (orderError) {
       throw new Error(orderError.message);
     }
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    throw new Error(error.message);
   }
+};
+
+const { $toast } = useNuxtApp();
+
+const renderPromiseToast = () => {
+  return $toast.promise(onSubmitHandler, {
+    loading: "Loading...",
+    success: (data) => {
+      return `Submit success`;
+    },
+    error: (data: any) => (data.message ? `${data.message}` : "Error"),
+  });
 };
 
 definePageMeta({
@@ -113,6 +125,7 @@ definePageMeta({
 </script>
 <template>
   <section class="mx-80">
+    <Toaster position="top-center" />
     <h2 class="text-center font-semibold text-2xl">Product Payment</h2>
     <p class="my-7">
       Please make a payment of to
@@ -141,7 +154,7 @@ definePageMeta({
     <form
       class="my-10"
       v-show="showPaymentConfimation"
-      @submit.prevent="onSubmitHandler"
+      @submit.prevent="renderPromiseToast"
     >
       <Label>Account name</Label>
       <Input

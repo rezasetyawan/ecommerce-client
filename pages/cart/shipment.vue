@@ -206,33 +206,21 @@ const onSubmitHandler = async () => {
         await addOrderProduct(supabase, data);
       })
     );
-  } catch (error) {}
+  } catch (err: any) {
+    throw new Error(err.message);
+  }
 };
 
-const getStatusMessage = (status: string) => {
-  let statusMessage: string = "";
+const { $toast } = useNuxtApp();
 
-  switch (status) {
-    case "PENDING":
-      statusMessage = "Waiting confirmation.";
-      break;
-    case "PAYMENT":
-      statusMessage = "Payment";
-      break;
-    case "ONPROCESS":
-      statusMessage = "Onprocess";
-      break;
-    case "SHIPPING":
-      statusMessage = "Shipping";
-      break;
-    case "CANCELLED":
-      statusMessage = "Cancelled";
-      break;
-    default:
-      statusMessage = "Invalid status.";
-  }
-
-  return statusMessage;
+const renderPromiseToast = () => {
+  return $toast.promise(onSubmitHandler, {
+    loading: "Loading...",
+    success: (data) => {
+      return `Checkout success`;
+    },
+    error: (data: any) => (data.message ? `${data.message}` : "Error"),
+  });
 };
 
 definePageMeta({
@@ -241,6 +229,7 @@ definePageMeta({
 </script>
 <template>
   <section class="mx-80 my-10">
+    <Toaster position="top-center" richcolors />
     <div>
       <h2 class="font-semibold border-b w-full pb-2">Shipping Address</h2>
       <div class="text-sm mt-3">
@@ -319,6 +308,6 @@ definePageMeta({
       <p>{{ toRupiah(itemsTotalPrice) }}</p>
     </div>
 
-    <Button class="w-full mt-10" @click="onSubmitHandler">Checkout</Button>
+    <Button class="w-full mt-10" @click="renderPromiseToast">Checkout</Button>
   </section>
 </template>

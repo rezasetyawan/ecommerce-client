@@ -23,4 +23,7 @@ export default defineNuxtConfig({
       RAJA_ONGKIR_API_KEY: process.env.RAJA_ONGKIR_API_KEY as string
     }
   },
+  build: {
+    transpile: ['vue-sonner']
+  }
 })

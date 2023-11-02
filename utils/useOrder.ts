@@ -17,8 +17,8 @@ const addPayment = async (client: SupabaseClient, paymentData: PaymentData) => {
         }
 
         return data
-    } catch (err) {
-        console.error(err)
+    } catch (err: any) {
+        throw new Error(err.message)
     }
 
 }
@@ -33,12 +33,13 @@ const addOrder = async (client: SupabaseClient, orderData: OrderData) => {
         const { data, error } = await client.from('orders').insert(order).select('id').single()
 
         if (error) {
+            console.log(error.message)
             throw new Error(error.message)
         }
 
         return data
-    } catch (err) {
-        console.error(err)
+    } catch (err: any) {
+        throw new Error(err.message)
     }
 }
 
@@ -54,8 +55,8 @@ const addOrderProduct = async (client: SupabaseClient, orderProductData: { varia
             throw new Error(error.message)
         }
 
-    } catch (error) {
-        console.log(error)
+    } catch (err: any) {
+        throw new Error(err.message)
     }
 }
 

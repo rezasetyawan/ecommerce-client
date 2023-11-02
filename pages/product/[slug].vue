@@ -7,10 +7,7 @@ import { useRoute } from "vue-router";
 import { useMyFetch } from "../../composables/useMyFetch";
 import { ProductDetail } from "../../types";
 import { Button } from "../../components/ui/button";
-import {
-  addProductToCart,
-  checkIsItemExist,
-} from "../../utils/useCart";
+import { addProductToCart, checkIsItemExist } from "../../utils/useCart";
 import { useElementVisibility } from "@vueuse/core";
 import { useUserStore } from "~/store/user";
 import { useCartStore } from "~/store/cart";
@@ -57,15 +54,15 @@ watch(seletedVariant, () => {
   )?.value as string;
 });
 
-
 const productQuantity = ref(1);
 const subtotal = computed(() => {
   return productQuantity.value * price.value;
 });
 
-
 const productInfo = ref<HTMLElement | null>(null);
 const isProductInfoInViewport = useElementVisibility(productInfo);
+
+const { $toast } = useNuxtApp();
 
 const addToCartHandler = async () => {
   try {
@@ -93,9 +90,19 @@ const addToCartHandler = async () => {
         await cartStore.getCartItemCounts(userStore.user?.cart_id as string);
       }
     }
-  } catch (err) {
-    console.error(err);
+  } catch (err: any) {
+    throw new Error(err.message);
   }
+};
+
+const renderPromiseToast = () => {
+  return $toast.promise(addToCartHandler, {
+    loading: "Loading...",
+    success: (data) => {
+      return `Product added to cart`;
+    },
+    error: (data: any) => (data.message ? `${data.message}` : "Error"),
+  });
 };
 
 definePageMeta({
@@ -103,6 +110,7 @@ definePageMeta({
 });
 </script>
 <template>
+  <Toaster position="top-center" />
   <section
     v-if="!pending && product"
     class="sm:flex gap-8 m-5 lg:m-10 font-rubik mb-[1200px] relative"
@@ -273,7 +281,7 @@ definePageMeta({
       </div>
 
       <div class="mt-12">
-        <Button class="w-full" @click="addToCartHandler">Add to cart</Button>
+        <Button class="w-full" @click="renderPromiseToast">Add to cart</Button>
       </div>
     </div>
   </section>

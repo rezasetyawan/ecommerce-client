@@ -10,8 +10,8 @@ const getUserAddress = async (client: SupabaseClient, userId: string) => {
         }
 
         return data as Address[]
-    } catch (error) {
-
+    } catch (err: any) {
+        throw new Error(err.message)
     }
 }
 
@@ -24,8 +24,8 @@ const getUserMainAddress = async (client: SupabaseClient, userId: string) => {
         }
 
         return data[0] as Address
-    } catch (error) {
-
+    } catch (err: any) {
+        throw new Error(err.message)
     }
 }
 

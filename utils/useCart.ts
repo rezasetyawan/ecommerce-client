@@ -8,12 +8,15 @@ const getCartId = async (client: SupabaseClient, userId: string) => {
     try {
         const { data: cart, error } = await client.from('cart').select('id').eq('user_id', userId).single()
 
-        console.log(error)
+        if (error) {
+            throw new Error(error.message)
+        }
+
         if (cart) {
             return cart.id as string
         }
-    } catch (error) {
-
+    } catch (err: any) {
+        throw new Error(err.message)
     }
 }
 
@@ -22,16 +25,17 @@ const checkIsItemExist = async (client: SupabaseClient, cartId: string, variantI
     try {
         const { data: cart_item, error } = await client.from('cart_items').select('id').eq('cart_id', cartId).eq('variant_id', variantId)
 
-        console.log(error)
+        if (error) {
+            throw new Error(error.message)
+        }
+
         if (cart_item) {
 
             if (cart_item.length) {
-                console.log('TRUEEEEEEEEEEEEEEEEEEE')
                 return true
             }
 
             if (!cart_item?.length) {
-                console.log('FALSEEEEEEEEEEEEEEEEEEE')
                 return false
             }
         }
@@ -39,10 +43,11 @@ const checkIsItemExist = async (client: SupabaseClient, cartId: string, variantI
         if (!cart_item) {
             return false
         }
-    } catch (error) {
-
+    } catch (err: any) {
+        throw new Error(err.message)
     }
 }
+
 const addProductToCart = async (client: SupabaseClient, productId: string, variantId: string, quantity: number, userId: string) => {
     try {
         const data = {
@@ -64,8 +69,8 @@ const addProductToCart = async (client: SupabaseClient, productId: string, varia
             const { error: updateItemQuantityError } = await client.from('cart_items').update({ quantity: quantity + cartItem?.quantity }).eq('id', cartItem?.id)
             console.log(updateItemQuantityError)
         }
-    } catch (error) {
-        console.error(error)
+    } catch (err: any) {
+        throw new Error(err.message)
     }
 }
 
@@ -78,8 +83,8 @@ const getUserCartItemCounts = async (client: SupabaseClient, cartId: string) => 
         if (data) {
             return data.length
         }
-    } catch (err) {
-        console.log(err)
+    } catch (err: any) {
+        throw new Error(err.message)
     }
 }
 
@@ -108,8 +113,9 @@ const getCartItems = async (client: SupabaseClient, cartId: string) => {
             return data
         }
     }
-    catch (err) {
-        console.error(err)
+    catch (err: any) {
+        throw new Error(err.message)
+
     }
 }
 
@@ -120,8 +126,8 @@ const deleteCartItem = async (client: SupabaseClient, cartItemId: string) => {
         if (error) {
             console.error(error.message)
         }
-    } catch (err) {
-
+    } catch (err: any) {
+        throw new Error(err.message)
     }
 }
 
@@ -132,8 +138,8 @@ const deleteMultipleCartItem = async (client: SupabaseClient, cartItemsId: strin
         if (error) {
             console.error(error.message)
         }
-    } catch (err) {
-
+    } catch (err: any) {
+        throw new Error(err.message)
     }
 }
 export { addProductToCart, getUserCartItemCounts, getCartId, checkIsItemExist, getCartItems, deleteCartItem, deleteMultipleCartItem }
