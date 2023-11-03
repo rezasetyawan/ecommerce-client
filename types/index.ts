@@ -30,6 +30,7 @@ interface CartItem {
     quantity: number
     price: number
     image_url: string
+    variant: string
 }
 
 interface Address {

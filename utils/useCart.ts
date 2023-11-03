@@ -101,13 +101,14 @@ const getCartItems = async (client: SupabaseClient, cartId: string) => {
             const data = await Promise.all(cartItems.map(async (item) => {
                 const { data: product } = await client.from('products').select('name').eq('id', item.product_id).single()
                 const { data: image } = await client.from('product_images').select('url').eq('product_id', item.product_id).single()
-                const { data: variant } = await client.from('variants').select('price').eq('product_id', item.product_id).eq('is_default', true).single()
+                const { data: variant } = await client.from('variants').select('price, value').eq('product_id', item.product_id).eq('id', item.variant_id).single()
 
                 return {
                     ...item,
                     name: product ? product.name : '',
                     price: variant ? variant.price : NaN,
-                    image_url: image ? image.url : ''
+                    image_url: image ? image.url : '',
+                    variant: variant ? variant.value : ''
                 }
             }))
             return data

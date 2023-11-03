@@ -1,23 +1,22 @@
 <script setup lang="ts">
-import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
-import { useUserStore } from "~/store/user";
-import { useCartStore } from "~/store/cart";
-import { getUserMainAddress } from "~/utils/useAddress";
-import { Address } from "~/types";
-import { Button } from "../../components/ui/button";
-import { toRupiah } from "~/utils/toRupiah";
-import { useMyFetch } from "~/composables/useMyFetch";
-import { addOrder, addPayment, addOrderProduct } from "~/utils/useOrder";
-import { OrderData, PaymentData } from "~/types";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
+Select,
+SelectContent,
+SelectGroup,
+SelectItem,
+SelectLabel,
+SelectTrigger,
+SelectValue,
 } from "~/components/ui/select";
+import { useMyFetch } from "~/composables/useMyFetch";
+import { useCartStore } from "~/store/cart";
+import { useUserStore } from "~/store/user";
+import { Address, OrderData, PaymentData } from "~/types";
+import { toRupiah } from "~/utils/toRupiah";
+import { getUserMainAddress } from "~/utils/useAddress";
+import { addOrder, addOrderProduct, addPayment } from "~/utils/useOrder";
+import { Button } from "../../components/ui/button";
+import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 
 interface Shipment {
   service: string;
@@ -229,7 +228,7 @@ definePageMeta({
 </script>
 <template>
   <section class="mx-80 my-10">
-    <Toaster position="top-center" richcolors />
+    <Toaster position="top-center" richColors />
     <div>
       <h2 class="font-semibold border-b w-full pb-2">Shipping Address</h2>
       <div class="text-sm mt-3">

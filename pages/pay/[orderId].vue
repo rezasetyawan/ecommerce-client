@@ -7,6 +7,7 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Button } from "~/components/ui/button";
 import { addImage } from "~/utils/useImage";
+import { updateProductStocks } from "~/utils/useProduct";
 
 const supabase = useSupabaseClient();
 const config = useRuntimeConfig();
@@ -41,9 +42,56 @@ const getPaymentAmount = async (client: SupabaseClient, orderId: string) => {
   }
 };
 
+const getOrderStatus = async (client: SupabaseClient, orderId: string) => {
+  try {
+    const { data, error } = await client
+      .from("orders")
+      .select("status")
+      .eq("id", orderId)
+      .single();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data.status;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const getOrderProductVariantIds = async (
+  client: SupabaseClient,
+  orderId: string
+) => {
+  try {
+    const { data: variants, error } = await client
+      .from("order_products")
+      .select("variant_id")
+      .eq("order_id", orderId);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const data = variants.map((variant) => {
+      return variant.variant_id as string;
+    });
+
+    return data;
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+};
+
 onMounted(async () => {
   const amount = await getPaymentAmount(supabase, orderId.value);
   paymentAmount.value = amount;
+
+  const status = await getOrderStatus(supabase, orderId.value);
+  if (status !== "PAYMENT") {
+    useRouter().push("/orders");
+  }
 });
 
 // const handleTransferInput = (event: Event) => {
@@ -99,6 +147,10 @@ const onSubmitHandler = async () => {
       .update({ status: "ONPROCESS" } as never)
       .eq("id", orderId.value);
 
+    const variantIds = await getOrderProductVariantIds(supabase, orderId.value);
+    console.log(variantIds);
+    await updateProductStocks(supabase, orderId.value, variantIds);
+
     if (orderError) {
       throw new Error(orderError.message);
     }
@@ -124,8 +176,8 @@ definePageMeta({
 });
 </script>
 <template>
-  <section class="mx-80">
-    <Toaster position="top-center" />
+  <section class="mx-20 xl:mx-80">
+    <Toaster position="top-center" richColors />
     <h2 class="text-center font-semibold text-2xl">Product Payment</h2>
     <p class="my-7">
       Please make a payment of to

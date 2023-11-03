@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import "vue3-carousel/dist/carousel.css";
-import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
-import { Carousel, Slide, Pagination, Navigation } from "vue3-carousel";
+import { useElementVisibility } from "@vueuse/core";
 import { ref } from "vue";
 import { useRoute } from "vue-router";
-import { useMyFetch } from "../../composables/useMyFetch";
-import { ProductDetail } from "../../types";
-import { Button } from "../../components/ui/button";
-import { addProductToCart, checkIsItemExist } from "../../utils/useCart";
-import { useElementVisibility } from "@vueuse/core";
-import { useUserStore } from "~/store/user";
+import { Carousel, Pagination, Slide } from "vue3-carousel";
+import "vue3-carousel/dist/carousel.css";
 import { useCartStore } from "~/store/cart";
+import { useUserStore } from "~/store/user";
+import { Button } from "../../components/ui/button";
+import { useMyFetch } from "../../composables/useMyFetch";
+import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
+import { ProductDetail } from "../../types";
+import { addProductToCart, checkIsItemExist } from "../../utils/useCart";
 
 const userStore = useUserStore();
 const cartStore = useCartStore();
@@ -96,6 +96,10 @@ const addToCartHandler = async () => {
 };
 
 const renderPromiseToast = () => {
+  if (!userStore.user) {
+    return useRouter().push("/auth/signin");
+  }
+
   return $toast.promise(addToCartHandler, {
     loading: "Loading...",
     success: (data) => {
@@ -110,7 +114,7 @@ definePageMeta({
 });
 </script>
 <template>
-  <Toaster position="top-center" />
+  <Toaster position="top-center" richColors />
   <section
     v-if="!pending && product"
     class="sm:flex gap-8 m-5 lg:m-10 font-rubik mb-[1200px] relative"
@@ -239,6 +243,7 @@ definePageMeta({
         cursus,
       </p>
     </div>
+
     <div
       class="border rounded-lg p-3 w-[20%] flex-col justify-between fixed bg-white right-10 hidden lg:flex"
     >
@@ -286,7 +291,7 @@ definePageMeta({
     </div>
   </section>
   <div class="fixed w-full bottom-0 bg-white lg:hidden">
-    <Button class="w-full rounded-none" @click="addToCartHandler"
+    <Button class="w-full rounded-none" @click="renderPromiseToast"
       >Add to cart</Button
     >
   </div>

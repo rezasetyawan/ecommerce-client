@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
+import { Trash2 } from "lucide-vue-next";
 import { ref } from "vue";
-import { CartItem } from "../../types";
-import { useUserStore } from "../../store/user";
 import { useCartStore } from "~/store/cart";
-import {
-  getCartItems,
-  deleteCartItem,
-  deleteMultipleCartItem,
-} from "../../utils/useCart";
 import { Button } from "../../components/ui/button";
 import { Checkbox } from "../../components/ui/checkbox";
-import { Trash2 } from "lucide-vue-next";
+import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
+import { useUserStore } from "../../store/user";
+import { CartItem } from "../../types";
+import {
+deleteCartItem,
+deleteMultipleCartItem,
+getCartItems,
+} from "../../utils/useCart";
 
 const userStore = useUserStore();
 const cartStore = useCartStore();
@@ -156,6 +156,7 @@ definePageMeta({
             <img class="ascpet-square w-24" :src="item.image_url" />
             <div>
               <h3 class="text-base">{{ item.name }}</h3>
+              <p class="font-medium text-sm text-black/70 my-1">{{ item.variant }}</p>
               <p class="font-medium text-sm">{{ toRupiah(item.price) }}</p>
             </div>
           </div>

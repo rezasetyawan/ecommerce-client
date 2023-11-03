@@ -13,7 +13,6 @@ const onSubmitHandler = async () => {
       .update({ status: "ONPROCESS" } as never)
       .eq("id", "njBUC1BJNfirDIQ5");
 
-    throw new Error("order error");
     if (orderError) {
       throw new Error(orderError.message);
     }
@@ -28,11 +27,11 @@ const renderPromiseToast = () => {
     success: (data) => {
       return `toast has been added`;
     },
-    error: (data: any) => `${data.message}`,
+    error: (data: any) => (data.message ? `${data.message}` : "Error"),
   });
 };
 </script>
 <template>
-  <Toaster position="top-center" />
+  <Toaster position="top-center" richColors />
   <button @click="renderPromiseToast">Render a toast</button>
 </template>

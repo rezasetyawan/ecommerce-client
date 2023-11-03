@@ -3,7 +3,7 @@ import Navbar from "../components/elements/Navbar.vue";
 </script>
 <template>
   <Navbar />
-  <main class="pb-32 font-rubik p-3">
+  <main class="pb-32 font-rubik relative">
     <slot></slot>
   </main>
 </template>

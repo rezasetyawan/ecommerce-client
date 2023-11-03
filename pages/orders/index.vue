@@ -1,8 +1,22 @@
 <script setup lang="ts">
-import { useMyFetch } from "../../composables/useMyFetch";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
+import { Button } from "~/components/ui/button";
 import { useUserStore } from "~/store/user";
 import { toRupiah } from "~/utils/toRupiah";
-import { Button } from "~/components/ui/button";
+import { updateOrderStatus } from "~/utils/useOrder";
+import { updateProductSoldCounts } from "~/utils/useProduct";
+import { useMyFetch } from "../../composables/useMyFetch";
+import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 
 interface OrderItem {
   id: string;
@@ -10,13 +24,20 @@ interface OrderItem {
   quantity: number;
   price: number;
   image_url: string;
+  variant: string;
 }
 
 interface Order {
   id: string;
   created_at: string;
   total: number;
-  status: "PENDING" | "PAYMENT" | "ONPROCESS" | "SHIPPING" | "CANCELLED";
+  status:
+    | "PENDING"
+    | "PAYMENT"
+    | "ONPROCESS"
+    | "SHIPPING"
+    | "CANCELLED"
+    | "FINISHED";
   order_items: OrderItem[];
 }
 
@@ -27,6 +48,7 @@ interface ApiResponse {
 }
 
 const userStore = useUserStore();
+const supabase = useSupabaseClient();
 
 const { data } = await useMyFetch("/api/orders", {
   query: {
@@ -78,6 +100,13 @@ const getStatusMessage = (status: string) => {
   return statusMessage;
 };
 
+const receiveProductHandler = async (orderId: string) => {
+  try {
+    await updateOrderStatus(supabase, orderId, "FINISHED");
+    await updateProductSoldCounts(supabase, orderId);
+  } catch (err: any) {}
+};
+
 definePageMeta({
   layout: "my-layout",
 });
@@ -99,7 +128,8 @@ definePageMeta({
                 <img :src="item.image_url" class="w-20" />
                 <div class="w-full">
                   <h2 class="text-lg font-semibold">{{ item.name }}</h2>
-                  <p>
+                  <p class="font-medium text-sm">{{ item.variant }}</p>
+                  <p class="text-black/70 font-medium text-sm">
                     {{ item.quantity }} products x {{ toRupiah(item.price) }}
                   </p>
                 </div>
@@ -112,9 +142,34 @@ definePageMeta({
           </div>
         </div>
         <div class="flex justify-end">
-          <Button class="px-10" :disabled="order.status !== 'PAYMENT'"
+          <Button class="px-10" v-if="order.status === 'PAYMENT'"
             ><NuxtLink :to="'/pay/' + order.id">Pay Now</NuxtLink></Button
           >
+          <div v-if="order.status === 'SHIPPING'">
+            <AlertDialog>
+              <AlertDialogTrigger as-child>
+                <Button variant="outline" class="px-10">RECEIVED </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will finished the order
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction @click="receiveProductHandler(order.id)"
+                    >Continue</AlertDialogAction
+                  >
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+
+          <div v-if="order.status === 'FINISHED'">
+            <Button class="px-10">Review</Button>
+          </div>
         </div>
       </div>
     </template>

@@ -60,4 +60,20 @@ const addOrderProduct = async (client: SupabaseClient, orderProductData: { varia
     }
 }
 
-export { addOrder, addPayment, addOrderProduct }
+type OrderStatus = "PENDING" | "PAYMENT" | "ONPROCESS" | "SHIPPING" | "CANCELLED" | "FINISHED";
+
+const updateOrderStatus = async (client: SupabaseClient, orderId: string, status: OrderStatus) => {
+    try {
+        const { data, error } = await client.from('orders').update({ status: status }).eq('id', orderId)
+
+        if (error) {
+            throw new Error(error.message)
+        }
+
+        return data
+    } catch (err: any) {
+        throw new Error(err.message)
+    }
+}
+
+export { addOrder, addPayment, addOrderProduct, updateOrderStatus }
