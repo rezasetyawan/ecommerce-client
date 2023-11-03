@@ -8,11 +8,12 @@ import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runt
 import { useUserStore } from "../../store/user";
 import { CartItem } from "../../types";
 import {
-deleteCartItem,
-deleteMultipleCartItem,
-getCartItems,
+  deleteCartItem,
+  deleteMultipleCartItem,
+  getCartItems,
 } from "../../utils/useCart";
 
+const { $toast } = useNuxtApp();
 const userStore = useUserStore();
 const cartStore = useCartStore();
 
@@ -106,10 +107,13 @@ const deleteSelectedItems = async () => {
 
 const checkoutHandler = () => {
   if (!selectedItems.value?.length) {
-    return alert('please select at least one product')
+    return $toast.error("Please select at least one product", {
+      duration: 3000,
+      dismissible: true,
+    });
   }
-    cartStore.setSelectedCartItems(selectedItems.value);
-    router.push("/cart/shipment");
+  cartStore.setSelectedCartItems(selectedItems.value);
+  router.push("/cart/shipment");
 };
 
 definePageMeta({
@@ -117,6 +121,7 @@ definePageMeta({
 });
 </script>
 <template>
+  <Toaster position="top-center" richColors />
   <section
     v-if="cartItems"
     class="sm:flex gap-8 m-2 lg:m-10 font-rubik mb-[1200px] relative"
@@ -155,8 +160,14 @@ definePageMeta({
             />
             <img class="ascpet-square w-24" :src="item.image_url" />
             <div>
-              <h3 class="text-base">{{ item.name }}</h3>
-              <p class="font-medium text-sm text-black/70 my-1">{{ item.variant }}</p>
+              <h3 class="text-base font-medium">
+                <NuxtLink :to="'/product/' + item.slug">{{
+                  item.name
+                }}</NuxtLink>
+              </h3>
+              <p class="font-medium text-sm text-black/70 my-1">
+                {{ item.variant }}
+              </p>
               <p class="font-medium text-sm">{{ toRupiah(item.price) }}</p>
             </div>
           </div>

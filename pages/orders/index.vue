@@ -17,29 +17,7 @@ import { updateOrderStatus } from "~/utils/useOrder";
 import { updateProductSoldCounts } from "~/utils/useProduct";
 import { useMyFetch } from "../../composables/useMyFetch";
 import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
-
-interface OrderItem {
-  id: string;
-  name: string;
-  quantity: number;
-  price: number;
-  image_url: string;
-  variant: string;
-}
-
-interface Order {
-  id: string;
-  created_at: string;
-  total: number;
-  status:
-    | "PENDING"
-    | "PAYMENT"
-    | "ONPROCESS"
-    | "SHIPPING"
-    | "CANCELLED"
-    | "FINISHED";
-  order_items: OrderItem[];
-}
+import { Order } from "~/types";
 
 interface ApiResponse {
   data: {
@@ -76,7 +54,7 @@ const getStatusMessage = (status: string) => {
 
   switch (status) {
     case "PENDING":
-      statusMessage = "Waiting confirmation.";
+      statusMessage = "Waiting confirmation";
       break;
     case "PAYMENT":
       statusMessage = "Payment";
@@ -127,7 +105,11 @@ definePageMeta({
               <div class="flex gap-3 items-center">
                 <img :src="item.image_url" class="w-20" />
                 <div class="w-full">
-                  <h2 class="text-lg font-semibold">{{ item.name }}</h2>
+                  <h2 class="text-lg font-semibold">
+                    <NuxtLink :to="'/product/' + item.slug">{{
+                      item.name
+                    }}</NuxtLink>
+                  </h2>
                   <p class="font-medium text-sm">{{ item.variant }}</p>
                   <p class="text-black/70 font-medium text-sm">
                     {{ item.quantity }} products x {{ toRupiah(item.price) }}
@@ -137,11 +119,14 @@ definePageMeta({
             </template>
           </div>
           <div class="w-full self-end">
-            <p>Subtotal</p>
+            <p>Total</p>
             <p class="font-medium">{{ toRupiah(order.total) }}</p>
           </div>
         </div>
         <div class="flex justify-end">
+          <Button variant="link"
+            ><NuxtLink :to="'/order/' + order.id">See detail</NuxtLink></Button
+          >
           <Button class="px-10" v-if="order.status === 'PAYMENT'"
             ><NuxtLink :to="'/pay/' + order.id">Pay Now</NuxtLink></Button
           >

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import {
-Select,
-SelectContent,
-SelectGroup,
-SelectItem,
-SelectLabel,
-SelectTrigger,
-SelectValue,
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
 } from "~/components/ui/select";
 import { useMyFetch } from "~/composables/useMyFetch";
 import { useCartStore } from "~/store/cart";
@@ -54,6 +54,7 @@ interface ShipmentCostResponse {
   };
 }
 
+const { $toast } = useNuxtApp();
 const storeAddress = ref({
   name: "Ini Toko",
   full_address: "Jl.jalan",
@@ -63,9 +64,21 @@ const storeAddress = ref({
   phone_number: "909090808",
 });
 
+interface CheckoutItem {
+  id: string;
+  product_id: string;
+  name: string;
+  variant_id: string;
+  quantity: number;
+  price: number;
+  image_url: string;
+  variant: string;
+  weight: number;
+}
 const supabase = useSupabaseClient();
 const userStore = useUserStore();
 const cartStore = useCartStore();
+const checkoutItems = ref<CheckoutItem[]>([]);
 
 const shipmentCost = ref<Shipment[] | undefined>([]);
 const selectedShipmentService = ref("");
@@ -91,18 +104,26 @@ const address = ref<Address>({
 
 const itemsTotalPrice = computed(() => {
   if (selectedShipment.value) {
-    return cartStore.selectedCartItems
-      ? cartStore.selectedCartItems.reduce((accumulator, currentValue) => {
+    return checkoutItems.value
+      ? checkoutItems.value.reduce((accumulator, currentValue) => {
           return accumulator + currentValue.price * currentValue.quantity;
         }, 0) + selectedShipment.value.price
       : 0;
   } else {
-    return cartStore.selectedCartItems
-      ? cartStore.selectedCartItems.reduce((accumulator, currentValue) => {
+    return checkoutItems.value
+      ? checkoutItems.value.reduce((accumulator, currentValue) => {
           return accumulator + currentValue.price * currentValue.quantity;
         }, 0)
       : 0;
   }
+});
+
+const itemsTotalWeight = computed(() => {
+  return checkoutItems.value
+    ? checkoutItems.value.reduce((accumulator, currentValue) => {
+        return accumulator + currentValue.weight * currentValue.quantity;
+      }, 0)
+    : 0;
 });
 
 const userCityCode = ref("");
@@ -140,7 +161,7 @@ const getShipmentCost = async () => {
         body: {
           origin: storeCityCode.value,
           destination: userCityCode.value,
-          weight: 800,
+          weight: itemsTotalWeight.value,
           courier: "jne",
         },
       }
@@ -166,6 +187,27 @@ onMounted(async () => {
     userStore.user?.id as string
   );
   address.value = addressData as Address;
+  console.log(addressData)
+
+  const checkoutItemsData = await Promise.all(
+    cartStore.selectedCartItems.map(async (item) => {
+      const { data, error } = await supabase
+        .from("variants")
+        .select("weight")
+        .eq("id", item.variant_id)
+        .single();
+
+      if (!data) return;
+
+      return {
+        ...item,
+        weight: parseInt(data.weight),
+      };
+    })
+  );
+
+  checkoutItems.value = checkoutItemsData as CheckoutItem[];
+  console.log(checkoutItems.value);
 
   const shipmentData = await getShipmentCost();
   shipmentCost.value = shipmentData;
@@ -175,15 +217,28 @@ watch(openShipmentItem, () => openShipmentItem.value);
 
 const onSubmitHandler = async () => {
   try {
+    if (itemsTotalWeight.value > 20000) {
+      throw new Error("Sorry our maximum capacity is 20KG");
+    }
+
+    if (!selectedShipmentService.value || !selectedShipment.value) {
+      throw new Error("Please chose shipment service");
+    }
+
     const orderData: OrderData = {
       user_id: userStore.user?.id as string,
       status: "PENDING",
       created_at: Date.now().toString(),
-      address_id: address.value.id,
       total: itemsTotalPrice.value,
     };
 
-    const order = await addOrder(supabase, orderData);
+    const shipmentData = {
+      service: "JNE " + selectedShipment.value.service,
+      address_id: address.value.id,
+      fee: selectedShipment.value.price,
+    };
+
+    const order = await addOrder(supabase, orderData, shipmentData);
 
     const payment: PaymentData = {
       order_id: order?.id,
@@ -205,12 +260,12 @@ const onSubmitHandler = async () => {
         await addOrderProduct(supabase, data);
       })
     );
+
+    // useRouter().push('/orders')
   } catch (err: any) {
     throw new Error(err.message);
   }
 };
-
-const { $toast } = useNuxtApp();
 
 const renderPromiseToast = () => {
   return $toast.promise(onSubmitHandler, {

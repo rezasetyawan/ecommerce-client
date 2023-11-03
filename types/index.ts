@@ -31,6 +31,7 @@ interface CartItem {
     price: number
     image_url: string
     variant: string
+    slug: string
 }
 
 interface Address {
@@ -46,9 +47,7 @@ interface Address {
 
 interface OrderData {
     user_id: string;
-    address_id: string;
     total: number;
-    receipt_number?: string;
     status: "PENDING" | "PAYMENT" | "ONPROCESS" | "SHIPPING" | "CANCELLED" | "FINISHED";
     created_at: string;
 }
@@ -60,4 +59,64 @@ interface PaymentData {
     struck: string;
 }
 
-export type { Product, ProductDetail, CartItem, Address, OrderData, PaymentData }
+interface ShipmentData {
+    service: string
+    receipt_number?: string
+    address_id: string
+    fee: number
+    order_id?: string
+}
+
+interface OrderItem {
+    id: string;
+    name: string;
+    quantity: number;
+    price: number;
+    image_url: string;
+    variant: string;
+    slug: string
+}
+
+interface Order {
+    id: string;
+    created_at: string;
+    total: number;
+    status:
+    | "PENDING"
+    | "PAYMENT"
+    | "ONPROCESS"
+    | "SHIPPING"
+    | "CANCELLED"
+    | "FINISHED";
+    order_items: OrderItem[];
+}
+
+interface OrderDetail {
+    id: string;
+    created_at: string;
+    total: number;
+    status:
+    | "PENDING"
+    | "PAYMENT"
+    | "ONPROCESS"
+    | "SHIPPING"
+    | "CANCELLED"
+    | "FINISHED";
+    order_items: OrderItem[];
+    address: {
+        name: string,
+        phone_number: string,
+        full_address: string,
+        district: string,
+        city: string,
+        province: string
+    }
+    shipment: {
+        receipt_number: string
+        shipment_fee: number
+        service: string
+    }
+    subtotal: number
+}
+
+export type { Address, CartItem, Order, OrderData, OrderDetail, OrderItem, PaymentData, Product, ProductDetail, ShipmentData }

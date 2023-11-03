@@ -106,9 +106,13 @@ definePageMeta({
             </div>
             <div>
               <p class="font-semibold text-sm lg:text-lg">{{ product.name }}</p>
-              <p class="text-gray-500 text-sm lg:text-lg">{{ product.category }}</p>
+              <p class="text-gray-500 text-sm lg:text-lg">
+                {{ product.category }}
+              </p>
             </div>
-            <div class="flex items-center justify-between font-medium text-sm lg:text-lg">
+            <div
+              class="flex items-center justify-between font-medium text-sm lg:text-lg"
+            >
               {{ toRupiah(product.price) }}
             </div>
 

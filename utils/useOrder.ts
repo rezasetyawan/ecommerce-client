@@ -1,6 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { nanoid } from "nanoid";
-import { OrderData, PaymentData } from "~/types";
+import { OrderData, PaymentData, ShipmentData } from "~/types";
 
 const addPayment = async (client: SupabaseClient, paymentData: PaymentData) => {
 
@@ -23,18 +23,30 @@ const addPayment = async (client: SupabaseClient, paymentData: PaymentData) => {
 
 }
 
-const addOrder = async (client: SupabaseClient, orderData: OrderData) => {
+const addOrder = async (client: SupabaseClient, orderData: OrderData, shipmentData: ShipmentData) => {
     try {
         const order = {
             id: nanoid(16),
             ...orderData
         }
 
+        const shipment = {
+            id: nanoid(16),
+            ...shipmentData,
+            order_id: order.id
+        }
+
         const { data, error } = await client.from('orders').insert(order).select('id').single()
+        const { error: shipmentError } = await client.from('order_shipment').insert(shipment)
 
         if (error) {
             console.log(error.message)
             throw new Error(error.message)
+        }
+
+        if (shipmentError) {
+            console.log(shipmentError.message)
+            throw new Error(shipmentError.message)
         }
 
         return data
