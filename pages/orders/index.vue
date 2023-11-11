@@ -12,12 +12,12 @@ import {
 } from "~/components/ui/alert-dialog";
 import { Button } from "~/components/ui/button";
 import { useUserStore } from "~/store/user";
-import { toRupiah } from "~/utils/toRupiah";
+import { Order } from "~/types";
+import { formatDate, toRupiah } from "~/utils";
 import { updateOrderStatus } from "~/utils/useOrder";
 import { updateProductSoldCounts } from "~/utils/useProduct";
 import { useMyFetch } from "../../composables/useMyFetch";
 import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
-import { Order } from "~/types";
 
 interface ApiResponse {
   data: {
@@ -38,16 +38,7 @@ const orders = ref<Order[]>([]);
 const ordersData = data.value as ApiResponse;
 orders.value = ordersData.data.orders;
 
-const formatDate = (millisecondsTimestamp: string): string => {
-  const dateObject = new Date(parseInt(millisecondsTimestamp));
-  const options: object = {
-    year: "numeric",
-    month: "long",
-    day: "2-digit",
-  };
-  const formattedDate = dateObject.toLocaleString(undefined, options);
-  return formattedDate;
-};
+
 
 const getStatusMessage = (status: string) => {
   let statusMessage: string = "";
@@ -82,7 +73,7 @@ const receiveProductHandler = async (orderId: string) => {
   try {
     await updateOrderStatus(supabase, orderId, "FINISHED");
     await updateProductSoldCounts(supabase, orderId);
-  } catch (err: any) {}
+  } catch (err: any) { }
 };
 
 definePageMeta({
@@ -124,12 +115,12 @@ definePageMeta({
           </div>
         </div>
         <div class="flex justify-end">
-          <Button variant="link"
-            ><NuxtLink :to="'/order/' + order.id">See detail</NuxtLink></Button
-          >
-          <Button class="px-10" v-if="order.status === 'PAYMENT'"
-            ><NuxtLink :to="'/pay/' + order.id">Pay Now</NuxtLink></Button
-          >
+          <Button variant="link">
+            <NuxtLink :to="'/order/' + order.id">See detail</NuxtLink>
+          </Button>
+          <Button class="px-10" v-if="order.status === 'PAYMENT'">
+            <NuxtLink :to="'/pay/' + order.id">Pay Now</NuxtLink>
+          </Button>
           <div v-if="order.status === 'SHIPPING'">
             <AlertDialog>
               <AlertDialogTrigger as-child>
@@ -144,16 +135,16 @@ definePageMeta({
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction @click="receiveProductHandler(order.id)"
-                    >Continue</AlertDialogAction
-                  >
+                  <AlertDialogAction @click="receiveProductHandler(order.id)">Continue</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           </div>
 
           <div v-if="order.status === 'FINISHED'">
-            <Button class="px-10">Review</Button>
+            <Button class="px-10">
+              <NuxtLink :to="'/review/' + order.id">Review</NuxtLink>
+            </Button>
           </div>
         </div>
       </div>

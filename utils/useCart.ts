@@ -6,14 +6,14 @@ import { nanoid } from "nanoid";
 
 const getCartId = async (client: SupabaseClient, userId: string) => {
     try {
-        const { data: cart, error } = await client.from('cart').select('id').eq('user_id', userId).single()
+        const { data: cart, error } = await client.from('cart').select('id').eq('user_id', userId)
 
         if (error) {
             throw new Error(error.message)
         }
 
-        if (cart) {
-            return cart.id as string
+        if (cart.length) {
+            return cart[0].id as string
         }
     } catch (err: any) {
         throw new Error(err.message)

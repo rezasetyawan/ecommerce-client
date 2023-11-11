@@ -4,6 +4,7 @@ import { ref } from "vue";
 import { useRoute } from "vue-router";
 import { Carousel, Pagination, Slide } from "vue3-carousel";
 import "vue3-carousel/dist/carousel.css";
+import StartRating from "~/components/elements/StartRating.vue";
 import { useCartStore } from "~/store/cart";
 import { useUserStore } from "~/store/user";
 import { Button } from "../../components/ui/button";
@@ -11,7 +12,9 @@ import { useMyFetch } from "../../composables/useMyFetch";
 import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 import { ProductDetail } from "../../types";
 import { addProductToCart, checkIsItemExist } from "../../utils/useCart";
+import { formatDate, toRupiah } from "~/utils"
 
+const { $toast } = useNuxtApp();
 const userStore = useUserStore();
 const cartStore = useCartStore();
 
@@ -19,15 +22,34 @@ const client = useSupabaseClient();
 const route = useRoute();
 const slug = ref(route.params.slug as string);
 
-interface ApiResponse {
+interface ProductApiResponse {
   data: ProductDetail;
 }
 
-const { data, pending } = await useMyFetch("/api/products/" + slug.value);
-const productData = data.value as ApiResponse;
-const product = ref<ProductDetail>();
+interface Review {
+  id: string
+  text: string
+  created_at: string
+  variant: string
+  rating: string
+  user_name: string
+}
 
+interface ReviewApiResponse {
+  data: Review[]
+}
+
+const { data: productResponse, pending } = await useMyFetch("/api/products/" + slug.value);
+const productData = productResponse.value as ProductApiResponse;
+const product = ref<ProductDetail>();
 product.value = productData.data;
+
+const { data: reviewsResponse } = await useMyFetch('/api/product-reviews/' + product.value?.id)
+const reviews = ref<Review[]>([])
+const reviewData = reviewsResponse.value as ReviewApiResponse
+reviews.value = reviewData.data
+console.log(reviews.value)
+
 
 const seletedVariant = ref<string>();
 seletedVariant.value = product.value.variants.find(
@@ -40,10 +62,6 @@ variant.value = product.value.variants.find(
   (variant) => variant.is_default === true
 )?.value as string;
 
-const toRupiah = (price: number) => {
-  return "Rp. " + price.toLocaleString("id-ID");
-};
-
 watch(seletedVariant, () => {
   price.value = product.value?.variants.find(
     (s) => s.id === seletedVariant.value
@@ -55,6 +73,7 @@ watch(seletedVariant, () => {
 });
 
 const productQuantity = ref(1);
+
 const subtotal = computed(() => {
   return productQuantity.value * price.value;
 });
@@ -62,9 +81,7 @@ const subtotal = computed(() => {
 const productInfo = ref<HTMLElement | null>(null);
 const isProductInfoInViewport = useElementVisibility(productInfo);
 
-const { $toast } = useNuxtApp();
-
-const addToCartHandler = async () => {
+const addItemToCart = async () => {
   try {
     if (
       !!userStore.user &&
@@ -100,7 +117,7 @@ const renderPromiseToast = () => {
     return useRouter().push("/auth/signin");
   }
 
-  return $toast.promise(addToCartHandler, {
+  return $toast.promise(addItemToCart, {
     loading: "Loading...",
     success: (data) => {
       return `Product added to cart`;
@@ -115,14 +132,9 @@ definePageMeta({
 </script>
 <template>
   <Toaster position="top-center" richColors />
-  <section
-    v-if="!pending && product"
-    class="sm:flex gap-8 m-5 lg:m-10 font-rubik mb-[1200px] relative"
-  >
-    <div
-      class="sm:w-[40%] lg:w-[25%] h-full w-full bg-white"
-      :class="{ 'lg:sticky lg:top-10 lg:left-10': isProductInfoInViewport }"
-    >
+  <section v-if="!pending && product" class="sm:flex gap-8 m-5 lg:m-10 font-rubik relative border-b pb-10">
+    <div class="sm:w-[40%] lg:w-[25%] h-full w-full bg-white"
+      :class="{ 'lg:sticky lg:top-10 lg:left-10': isProductInfoInViewport }">
       <Carousel :items-to-show="1">
         <Slide v-for="(image, key) in product?.images" :key="key" class="">
           <img :src="image.url" class="rounded-md object-cover aspect-[4/3" />
@@ -134,6 +146,7 @@ definePageMeta({
       </Carousel>
     </div>
 
+    <!-- product info -->
     <div class="sm:w-[50%]" ref="productInfo">
       <h2 class="text-2xl font-semibold">{{ product?.name }}</h2>
       <div>
@@ -149,14 +162,8 @@ definePageMeta({
           <template v-for="variant in product.variants" :key="variant.id">
             <label
               class="font-medium px-[0.8em] py-[0.4em] min-w-[50px] text-sm text-center rounded-xl hover:cursor-pointer"
-              :class="{ 'bg-slate-200': variant.id === seletedVariant }"
-            >
-              <input
-                type="radio"
-                :value="variant.id"
-                v-model="seletedVariant"
-                class="hidden w-full h-full"
-              />
+              :class="{ 'bg-slate-200': variant.id === seletedVariant }">
+              <input type="radio" :value="variant.id" v-model="seletedVariant" class="hidden w-full h-full" />
               {{ variant.value }}
             </label>
           </template>
@@ -243,37 +250,25 @@ definePageMeta({
         cursus,
       </p>
     </div>
+    <!-- end of product info -->
 
-    <div
-      class="border rounded-lg p-3 w-[20%] flex-col justify-between fixed bg-white right-10 hidden lg:flex"
-    >
+    <!-- product action (add to cart and select quantity) -->
+    <div class="border rounded-lg p-3 w-[20%] flex-col justify-between fixed bg-white right-10 hidden lg:flex">
       <div>
         <h3 class="font-medium text-lg">Set quantity</h3>
         <p class="text-base my-2">{{ variant }}</p>
         <div class="flex gap-3 items-center justify-between">
-          <div
-            class="flex gap-2 border rounded-md px-1 py-1 justify-between items-center"
-          >
-            <button
-              @click="() => productQuantity--"
+          <div class="flex gap-2 border rounded-md px-1 py-1 justify-between items-center">
+            <button @click="() => productQuantity--"
               class="w-6 h-6 flex items-center justify-center hover:bg-slate-100 rounded-md"
-              :class="{ 'cursor-not-allowed': productQuantity === 1 }"
-              :disabled="productQuantity === 1"
-            >
+              :class="{ 'cursor-not-allowed': productQuantity === 1 }" :disabled="productQuantity === 1">
               -
             </button>
-            <input
-              class="w-8 focus:outline-none text-center"
-              v-model="productQuantity"
-            />
-            <button
-              @click="() => productQuantity++"
-              class="w-6 h-6 flex items-center justify-center hover:bg-slate-100 rounded-md"
-              :class="{
+            <input class="w-8 focus:outline-none text-center" v-model="productQuantity" />
+            <button @click="() => productQuantity++"
+              class="w-6 h-6 flex items-center justify-center hover:bg-slate-100 rounded-md" :class="{
                 'cursor-not-allowed': productQuantity === product.stocks,
-              }"
-              :disabled="productQuantity === product.stocks"
-            >
+              }" :disabled="productQuantity === product.stocks">
               +
             </button>
           </div>
@@ -289,10 +284,91 @@ definePageMeta({
         <Button class="w-full" @click="renderPromiseToast">Add to cart</Button>
       </div>
     </div>
+    <!-- end of product action -->
   </section>
+
+  <!-- product reviews section -->
+  <section>
+    <div v-if="reviews" class="sm:w-[45%] mx-auto">
+      <template v-for="review in  reviews " :key="review.id">
+        <div class="border-b py-3">
+          <div>
+            <StartRating :read-only="true" :rating-value="+review.rating" rating-size="1.5rem" />
+            <p>{{ formatDate(review.created_at) }}</p>
+          </div>
+          <div class="flex gap-3 items-center">
+            <div class="w-10 h-10 overflow-hidden rounded-full">
+              <img :src="'https://ui-avatars.com/api/?name=' + review.user_name.replaceAll(' ', ' + ')">
+            </div>
+            <p class="font-medium">
+              {{ review.user_name }}
+            </p>
+          </div>
+          <div class="mt-2">
+            <p class="text-sm text-slate-500">Variant: {{ review.variant }}</p>
+            <p>{{ review.text }}</p>
+          </div>
+        </div>
+        <div class="border-b py-3">
+          <div>
+            <StartRating :read-only="true" :rating-value="+review.rating" rating-size="1.5rem" />
+            <p>{{ formatDate(review.created_at) }}</p>
+          </div>
+          <div class="flex gap-3 items-center">
+            <div class="w-10 h-10 overflow-hidden rounded-full">
+              <img :src="'https://ui-avatars.com/api/?name=' + review.user_name.replaceAll(' ', ' + ')">
+            </div>
+            <p class="font-medium">
+              {{ review.user_name }}
+            </p>
+          </div>
+          <div class="mt-2">
+            <p class="text-sm text-slate-500">Variant: {{ review.variant }}</p>
+            <p>{{ review.text }}</p>
+          </div>
+        </div>
+        <div class="border-b py-3">
+          <div>
+            <StartRating :read-only="true" :rating-value="+review.rating" rating-size="1.5rem" />
+            <p>{{ formatDate(review.created_at) }}</p>
+          </div>
+          <div class="flex gap-3 items-center">
+            <div class="w-10 h-10 overflow-hidden rounded-full">
+              <img :src="'https://ui-avatars.com/api/?name=' + review.user_name.replaceAll(' ', ' + ')">
+            </div>
+            <p class="font-medium">
+              {{ review.user_name }}
+            </p>
+          </div>
+          <div class="mt-2">
+            <p class="text-sm text-slate-500">Variant: {{ review.variant }}</p>
+            <p>{{ review.text }}</p>
+          </div>
+        </div>
+        <div class="border-b py-3">
+          <div>
+            <StartRating :read-only="true" :rating-value="+review.rating" rating-size="1.5rem" />
+            <p>{{ formatDate(review.created_at) }}</p>
+          </div>
+          <div class="flex gap-3 items-center">
+            <div class="w-10 h-10 overflow-hidden rounded-full">
+              <img :src="'https://ui-avatars.com/api/?name=' + review.user_name.replaceAll(' ', ' + ')">
+            </div>
+            <p class="font-medium">
+              {{ review.user_name }}
+            </p>
+          </div>
+          <div class="mt-2">
+            <p class="text-sm text-slate-500">Variant: {{ review.variant }}</p>
+            <p>{{ review.text }}</p>
+          </div>
+        </div>
+      </template>
+    </div>
+  </section>
+  <!-- end of product reviews section -->
+
   <div class="fixed w-full bottom-0 bg-white lg:hidden">
-    <Button class="w-full rounded-none" @click="renderPromiseToast"
-      >Add to cart</Button
-    >
+    <Button class="w-full rounded-none" @click="renderPromiseToast">Add to cart</Button>
   </div>
 </template>

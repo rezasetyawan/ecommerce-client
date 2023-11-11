@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { toRupiah } from "~/utils/toRupiah";
+import { toRupiah } from "~/utils";
 import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -108,7 +108,7 @@ const onFileChangeHandler = (event: Event) => {
   try {
     const target = event.target as HTMLInputElement;
     if (target.files) struck.value = target.files[0];
-  } catch (error) {}
+  } catch (error) { }
 };
 
 const getImageUrl = () => {
@@ -203,52 +203,24 @@ definePageMeta({
       </div>
     </div>
 
-    <form
-      class="my-10"
-      v-show="showPaymentConfimation"
-      @submit.prevent="renderPromiseToast"
-    >
+    <form class="my-10" v-show="showPaymentConfimation" @submit.prevent="renderPromiseToast">
       <Label>Account name</Label>
-      <Input
-        type="text"
-        class="mt-2"
-        v-model="paymentConfirmationInfo.name"
-        required
-      />
+      <Input type="text" class="mt-2" v-model="paymentConfirmationInfo.name" required />
       <Label class="mt-3">Bank name</Label>
-      <Input
-        type="text"
-        class="mt-2"
-        v-model="paymentConfirmationInfo.bank_name"
-        required
-      />
+      <Input type="text" class="mt-2" v-model="paymentConfirmationInfo.bank_name" required />
       <Label class="mt-3">Transfer amount</Label>
       <div class="relative">
-        <Input
-          type="number"
-          class="mt-2"
-          v-model="paymentConfirmationInfo.amount"
-          required
-        />
+        <Input type="number" class="mt-2" v-model="paymentConfirmationInfo.amount" required />
         <p class="absolute top-[25%] bg-white text-sm px-3">
           {{ toRupiah(paymentConfirmationInfo.amount) }}
         </p>
       </div>
       <Label class="mt-3">Struck</Label>
 
-      <img
-        v-if="struck"
-        :src="getImageUrl()"
-        alt="Selected Image"
-        class="max-w-[150px] mt-3"
-      />
-      <input
-        type="file"
+      <img v-if="struck" :src="getImageUrl()" alt="Selected Image" class="max-w-[150px] mt-3" />
+      <input type="file"
         class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 mt-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        accept="image/png, image/jpeg, image/jpg"
-        @change="(event: Event) => onFileChangeHandler(event)"
-        required
-      />
+        accept="image/png, image/jpeg, image/jpg" @change="(event: Event) => onFileChangeHandler(event)" required />
 
       <Button class="w-full my-16" type="submit">Submit</Button>
     </form>
@@ -256,10 +228,7 @@ definePageMeta({
     <Alert class="mt-20">
       <AlertDescription>
         After you make a payment, please confirm the payment.
-        <button
-          @click="showPaymentConfimation = !showPaymentConfimation"
-          class="underline"
-        >
+        <button @click="showPaymentConfimation = !showPaymentConfimation" class="underline">
           Payment Confirmation
         </button>
       </AlertDescription>

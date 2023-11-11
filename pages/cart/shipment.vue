@@ -12,7 +12,7 @@ import { useMyFetch } from "~/composables/useMyFetch";
 import { useCartStore } from "~/store/cart";
 import { useUserStore } from "~/store/user";
 import { Address, OrderData, PaymentData } from "~/types";
-import { toRupiah } from "~/utils/toRupiah";
+import { toRupiah } from "~/utils";
 import { getUserMainAddress } from "~/utils/useAddress";
 import { addOrder, addOrderProduct, addPayment } from "~/utils/useOrder";
 import { Button } from "../../components/ui/button";
@@ -106,14 +106,14 @@ const itemsTotalPrice = computed(() => {
   if (selectedShipment.value) {
     return checkoutItems.value
       ? checkoutItems.value.reduce((accumulator, currentValue) => {
-          return accumulator + currentValue.price * currentValue.quantity;
-        }, 0) + selectedShipment.value.price
+        return accumulator + currentValue.price * currentValue.quantity;
+      }, 0) + selectedShipment.value.price
       : 0;
   } else {
     return checkoutItems.value
       ? checkoutItems.value.reduce((accumulator, currentValue) => {
-          return accumulator + currentValue.price * currentValue.quantity;
-        }, 0)
+        return accumulator + currentValue.price * currentValue.quantity;
+      }, 0)
       : 0;
   }
 });
@@ -121,8 +121,8 @@ const itemsTotalPrice = computed(() => {
 const itemsTotalWeight = computed(() => {
   return checkoutItems.value
     ? checkoutItems.value.reduce((accumulator, currentValue) => {
-        return accumulator + currentValue.weight * currentValue.quantity;
-      }, 0)
+      return accumulator + currentValue.weight * currentValue.quantity;
+    }, 0)
     : 0;
 });
 
@@ -178,7 +178,7 @@ const getShipmentCost = async () => {
         etd: item.cost[0].etd,
       };
     });
-  } catch (error) {}
+  } catch (error) { }
 };
 
 onMounted(async () => {
@@ -309,39 +309,28 @@ definePageMeta({
                 {{ toRupiah(product.quantity * product.price) }}
               </p>
             </div>
-          </div></template
-        >
+          </div>
+        </template>
       </div>
       <div class="">
-        <Select
-          v-if="shipmentCost"
-          v-model="selectedShipmentService"
-          @update:open="(isOpen:boolean) => {
-            openShipmentItem = isOpen
-          }"
-        >
+        <Select v-if="shipmentCost" v-model="selectedShipmentService" @update:open="(isOpen: boolean) => {
+          openShipmentItem = isOpen
+        }">
           <SelectTrigger class="mt-2">
             <SelectValue placeholder="Select shipment" class="w-60" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup class="max-h-60">
               <SelectLabel>Shipment</SelectLabel>
-              <template v-for="data in shipmentCost" :key="data.service"
-                ><SelectItem :value="data.service">
-                  <p
-                    class="bg-white w-full h-full"
-                    v-show="
-                      selectedShipmentService === data.service ||
-                      !openShipmentItem
-                    "
-                  >
+              <template v-for="data in shipmentCost" :key="data.service">
+                <SelectItem :value="data.service">
+                  <p class="bg-white w-full h-full" v-show="selectedShipmentService === data.service ||
+                    !openShipmentItem
+                    ">
                     JNE {{ data.service }}
                   </p>
 
-                  <div
-                    class="flex gap-10"
-                    v-show="!(selectedShipmentService === data.service)"
-                  >
+                  <div class="flex gap-10" v-show="!(selectedShipmentService === data.service)">
                     <div class="w-20">
                       <p class="font-semibold">JNE {{ data.service }}</p>
                       <p>{{ data.etd }} days</p>
@@ -355,9 +344,7 @@ definePageMeta({
         </Select>
       </div>
     </div>
-    <div
-      class="flex justify-between items-center font-semibold mt-8 border-t p-2 w-full"
-    >
+    <div class="flex justify-between items-center font-semibold mt-8 border-t p-2 w-full">
       <p>Subtotal</p>
       <p>{{ toRupiah(itemsTotalPrice) }}</p>
     </div>

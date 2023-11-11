@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { useMyFetch } from "~/composables/useMyFetch";
-import { toRupiah } from "~/utils/toRupiah";
+import { OrderDetail } from "~/types";
+import { formatDate } from "~/utils";
+import { toRupiah } from "~/utils";
+
 const route = useRoute();
 const orderId = ref(route.params.orderId as string);
-import { OrderDetail } from "~/types";
 interface ApiResponse {
   data: OrderDetail;
 }
@@ -13,16 +15,7 @@ const { data } = await useMyFetch("/api/orders/" + orderId.value);
 const apiResponse = data.value as ApiResponse;
 order.value = apiResponse.data;
 
-const formatDate = (millisecondsTimestamp: string): string => {
-  const dateObject = new Date(parseInt(millisecondsTimestamp));
-  const options: object = {
-    year: "numeric",
-    month: "long",
-    day: "2-digit",
-  };
-  const formattedDate = dateObject.toLocaleString(undefined, options);
-  return formattedDate;
-};
+
 
 const getStatusMessage = (status: string) => {
   let statusMessage: string = "";
@@ -74,9 +67,7 @@ definePageMeta({
       <div class="flex gap-10 my-4">
         <div class="w-full space-y-3">
           <template v-for="item in order.order_items" :key="item.id">
-            <div
-              class="flex gap-3 items-center shadow-sm border p-3 rounded-lg"
-            >
+            <div class="flex gap-3 items-center shadow-sm border p-3 rounded-lg">
               <img :src="item.image_url" class="w-20" />
               <div class="w-full">
                 <h2 class="text-lg font-semibold">
@@ -131,9 +122,7 @@ definePageMeta({
             <p>{{ toRupiah(order.shipment.shipment_fee) }}</p>
           </div>
         </div>
-        <div
-          class="flex justify-between text-base font-medium border-t-2 border-dashed pt-3"
-        >
+        <div class="flex justify-between text-base font-medium border-t-2 border-dashed pt-3">
           <p>Total</p>
           <p>{{ toRupiah(order.shipment.shipment_fee) }}</p>
         </div>

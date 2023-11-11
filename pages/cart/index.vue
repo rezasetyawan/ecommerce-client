@@ -2,15 +2,16 @@
 import { Trash2 } from "lucide-vue-next";
 import { ref } from "vue";
 import { useCartStore } from "~/store/cart";
+import { toRupiah } from "~/utils";
 import { Button } from "../../components/ui/button";
 import { Checkbox } from "../../components/ui/checkbox";
 import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 import { useUserStore } from "../../store/user";
 import { CartItem } from "../../types";
 import {
-  deleteCartItem,
-  deleteMultipleCartItem,
-  getCartItems,
+deleteCartItem,
+deleteMultipleCartItem,
+getCartItems,
 } from "../../utils/useCart";
 
 const { $toast } = useNuxtApp();
@@ -26,9 +27,7 @@ cartItems.value = (await getCartItems(
   userStore.user?.cart_id as string
 )) as CartItem[];
 
-const toRupiah = (price: number) => {
-  return "Rp. " + price.toLocaleString("id-ID");
-};
+
 
 const deleteLocalCartItem = (id: string) => {
   const index = cartItems.value?.findIndex((item) => item.id === id);
@@ -43,7 +42,7 @@ const deleteCartItemHanlder = async (id: string) => {
     deleteLocalCartItem(id);
 
     await cartStore.getCartItemCounts(userStore.user?.cart_id as string);
-  } catch (error) {}
+  } catch (error) { }
 };
 
 const selectedItemsId = ref<string[]>([]);
@@ -69,8 +68,8 @@ const selectedItems = computed(() => {
 const totalPriceOfSelectedItems = computed(() => {
   return selectedItems.value
     ? selectedItems.value.reduce((accumulator, currentValue) => {
-        return accumulator + currentValue.price * currentValue.quantity;
-      }, 0)
+      return accumulator + currentValue.price * currentValue.quantity;
+    }, 0)
     : 0;
 });
 
@@ -122,29 +121,18 @@ definePageMeta({
 </script>
 <template>
   <Toaster position="top-center" richColors />
-  <section
-    v-if="cartItems"
-    class="sm:flex gap-8 m-2 lg:m-10 font-rubik mb-[1200px] relative"
-  >
+  <section v-if="cartItems" class="sm:flex gap-8 m-2 lg:m-10 font-rubik mb-[1200px] relative">
     <div class="w-[75%]">
       <div class="border-b px-2">
         <h2 class="text-2xl font-semibold w-full mb-2 pb-2">Cart</h2>
         <div class="flex justify-between items-center">
           <div class="flex gap-3 items-center mb-2">
-            <Checkbox
-              class="w-5 h-5"
-              :checked="
-                selectedItemsId.length === cartItems.length &&
-                selectedItems?.length !== 0
-              "
-              @update:checked="(ischecked: boolean) => selectAllItemHandler(ischecked)"
-            />
+            <Checkbox class="w-5 h-5" :checked="selectedItemsId.length === cartItems.length &&
+              selectedItems?.length !== 0
+              " @update:checked="(ischecked: boolean) => selectAllItemHandler(ischecked)" />
             <p>Select all</p>
           </div>
-          <button
-            v-show="selectedItemsId.length"
-            @click="deleteSelectedItems()"
-          >
+          <button v-show="selectedItemsId.length" @click="deleteSelectedItems()">
             Delete
           </button>
         </div>
@@ -153,11 +141,8 @@ definePageMeta({
       <template v-for="item in cartItems" :key="item.id">
         <div class="border-b p-2">
           <div class="flex gap-2 items-center">
-            <Checkbox
-              @update:checked="() => handleProductSelectionChange(item.id)"
-              class="w-5 h-5"
-              :checked="selectedItemsId.includes(item.id)"
-            />
+            <Checkbox @update:checked="() => handleProductSelectionChange(item.id)" class="w-5 h-5"
+              :checked="selectedItemsId.includes(item.id)" />
             <img class="ascpet-square w-24" :src="item.image_url" />
             <div>
               <h3 class="text-base font-medium">
@@ -173,28 +158,19 @@ definePageMeta({
           </div>
 
           <div class="flex gap-4 justify-end mt-1">
-            <button @click="deleteCartItemHanlder(item.id)"><Trash2 /></button>
-            <div
-              class="flex gap-2 border rounded-md px-1 py-1 justify-between items-center"
-            >
-              <button
-                @click="item.quantity--"
-                class="w-6 h-6 flex items-center justify-center hover:bg-slate-100 rounded-md"
-                :class="{
+            <button @click="deleteCartItemHanlder(item.id)">
+              <Trash2 />
+            </button>
+            <div class="flex gap-2 border rounded-md px-1 py-1 justify-between items-center">
+              <button @click="item.quantity--"
+                class="w-6 h-6 flex items-center justify-center hover:bg-slate-100 rounded-md" :class="{
                   'cursor-not-allowed': item.quantity === 1,
-                }"
-                :disabled="item.quantity === 1"
-              >
+                }" :disabled="item.quantity === 1">
                 -
               </button>
-              <input
-                class="w-8 focus:outline-none text-center"
-                v-model="item.quantity"
-              />
-              <button
-                @click="item.quantity++"
-                class="w-6 h-6 flex items-center justify-center hover:bg-slate-100 rounded-md"
-              >
+              <input class="w-8 focus:outline-none text-center" v-model="item.quantity" />
+              <button @click="item.quantity++"
+                class="w-6 h-6 flex items-center justify-center hover:bg-slate-100 rounded-md">
                 +
               </button>
             </div>
@@ -202,15 +178,11 @@ definePageMeta({
         </div>
       </template>
     </div>
-    <div
-      class="border rounded-lg p-3 w-[20%] flex-col justify-between fixed bg-white right-10 hidden lg:flex"
-    >
+    <div class="border rounded-lg p-3 w-[20%] flex-col justify-between fixed bg-white right-10 hidden lg:flex">
       <div>
         <h3 class="font-medium text-lg">Shopping summary</h3>
         <p class="text-base my-2"></p>
-        <div
-          class="flex gap-3 items-center w-full max-w-full text-slate-500 text-[14px] flex-wrap"
-        >
+        <div class="flex gap-3 items-center w-full max-w-full text-slate-500 text-[14px] flex-wrap">
           <p class="">Total Price ({{ selectedItems?.length }} products)</p>
           <p class="">{{ toRupiah(totalPriceOfSelectedItems) }}</p>
         </div>

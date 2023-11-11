@@ -67,34 +67,25 @@ interface User {
     cart_id?: string
 }
 
-const supabase = useSupabaseClient()
-
 export const useUserStore = defineStore('auth', () => {
-    const user = ref<User | null>(null)
+    const user = ref<User | null>()
     const localUser = useStorage<User>('user', null)
 
-    const getUser = async () => {
-      if (supabase) {
-        console.log('getting user data...')
-        const { data: { user: supabaseUser } } = await supabase.auth.getUser()
-
-        console.log(supabaseUser)
-        const cartId = await getCartId(supabase, supabaseUser?.id as string)
-
-        console.log(cartId)
-
-        const userData = supabaseUser ? { ...supabaseUser, cart_id: cartId } : null
-        user.value = userData as User
-        localUser.value = userData as User
-      }
+    const getUser = async (supabase: SupabaseClient) => {
+        try {
+            const { data: { user: supabaseUser } } = await supabase.auth.getUser()
+            const cartId = await getCartId(supabase, supabaseUser?.id as string)
+            const userData = supabaseUser ? { ...supabaseUser, cart_id: cartId } : null
+            user.value = userData as User
+            localUser.value = userData as User
+        } catch (error) {
+            console.log(error)
+        }
     }
 
-    const signOut = async () => {
+    const signOut = async (supabase: SupabaseClient) => {
         try {
             const { error } = await supabase.auth.signOut()
-
-            console.log(error)
-
             user.value = null
             localUser.value = null
         } catch (error) {
