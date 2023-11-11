@@ -1,10 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { useSupabaseClient } from "../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 import { SupabaseClient } from '@supabase/supabase-js';
 import { useStorage } from '@vueuse/core'
 import { getCartId } from '~/utils/useCart';
-import { RefSymbol } from '@vue/reactivity';
 
 
 export interface UserIdentity {
@@ -69,15 +67,20 @@ interface User {
 
 export const useUserStore = defineStore('auth', () => {
     const user = ref<User | null>()
-    const localUser = useStorage<User>('user', null)
+    const localUser = useStorage<User | any>('user', {}, localStorage, {mergeDefaults: true})
 
     const getUser = async (supabase: SupabaseClient) => {
         try {
-            const { data: { user: supabaseUser } } = await supabase.auth.getUser()
-            const cartId = await getCartId(supabase, supabaseUser?.id as string)
-            const userData = supabaseUser ? { ...supabaseUser, cart_id: cartId } : null
-            user.value = userData as User
-            localUser.value = userData as User
+            if (!localUser.value) {
+                console.log('dari dalem if')
+                const { data: { user: supabaseUser } } = await supabase.auth.getUser()
+                const cartId = await getCartId(supabase, supabaseUser?.id as string)
+                const userData = supabaseUser ? { ...supabaseUser, cart_id: cartId } : null
+                user.value = userData as User
+                localUser.value = userData as User
+            } else {
+                user.value = localUser.value
+            }
         } catch (error) {
             console.log(error)
         }

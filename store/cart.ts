@@ -1,12 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { useSupabaseClient } from "../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 import { SupabaseClient } from '@supabase/supabase-js';
-import { useStorage } from '@vueuse/core'
 import { getUserCartItemCounts } from "../utils/useCart";
 import { CartItem } from '../types';
-
-const supabase = useSupabaseClient()
 
 interface Cart {
     item_counts: number,
@@ -16,9 +12,9 @@ export const useCartStore = defineStore('cart', () => {
     const cart = ref<Cart | null>(null)
     const selectedCartItems = ref<CartItem[]>([])
 
-    const getCartItemCounts = async (cartId: string) => {
+    const getCartItemCounts = async (client: SupabaseClient, cartId: string) => {
         try {
-            const itemCounts = await getUserCartItemCounts(supabase, cartId)
+            const itemCounts = await getUserCartItemCounts(client, cartId)
             if (!itemCounts) {
                 return cart.value = { item_counts: 0 }
             }

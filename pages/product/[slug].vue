@@ -18,7 +18,7 @@ const { $toast } = useNuxtApp();
 const userStore = useUserStore();
 const cartStore = useCartStore();
 
-const client = useSupabaseClient();
+const supabase = useSupabaseClient();
 const route = useRoute();
 const slug = ref(route.params.slug as string);
 
@@ -48,9 +48,86 @@ const { data: reviewsResponse } = await useMyFetch('/api/product-reviews/' + pro
 const reviews = ref<Review[]>([])
 const reviewData = reviewsResponse.value as ReviewApiResponse
 reviews.value = reviewData.data
-console.log(reviews.value)
-
-
+reviews.value = [...reviews.value, {
+  id: 'dfdfdfdf',
+  text: 'gg bang',
+  created_at: '1699709547403',
+  variant: 'satu',
+  rating: '4',
+  user_name: 'asep'
+},
+{
+  id: 'ghghghgh',
+  text: 'awesome',
+  created_at: '1699709557403',
+  variant: 'dua',
+  rating: '5',
+  user_name: 'budi'
+},
+{
+  id: 'ijklmnop',
+  text: 'great job',
+  created_at: '1699709567403',
+  variant: 'tiga',
+  rating: '3',
+  user_name: 'charlie'
+},
+{
+  id: 'qrstuvwx',
+  text: 'nice work',
+  created_at: '1699709577403',
+  variant: 'empat',
+  rating: '2',
+  user_name: 'david'
+},
+{
+  id: 'yzabcdef',
+  text: 'fantastic',
+  created_at: '1699709587403',
+  variant: 'lima',
+  rating: '1',
+  user_name: 'eva'
+},
+{
+  id: '12345678',
+  text: 'gg bang',
+  created_at: '1699709597403',
+  variant: 'satu',
+  rating: '4',
+  user_name: 'asep'
+},
+{
+  id: 'abcdefgh',
+  text: 'awesome',
+  created_at: '1699709607403',
+  variant: 'dua',
+  rating: '5',
+  user_name: 'budi'
+},
+{
+  id: 'ijklmnop',
+  text: 'great job',
+  created_at: '1699709617403',
+  variant: 'tiga',
+  rating: '3',
+  user_name: 'charlie'
+},
+{
+  id: 'qrstuvwx',
+  text: 'nice work',
+  created_at: '1699709627403',
+  variant: 'empat',
+  rating: '2',
+  user_name: 'david'
+},
+{
+  id: 'yzabcdef',
+  text: 'fantastic',
+  created_at: '1699709637403',
+  variant: 'lima',
+  rating: '1',
+  user_name: 'eva'
+}]
 const seletedVariant = ref<string>();
 seletedVariant.value = product.value.variants.find(
   (variant) => variant.is_default === true
@@ -80,6 +157,11 @@ const subtotal = computed(() => {
 
 const productInfo = ref<HTMLElement | null>(null);
 const isProductInfoInViewport = useElementVisibility(productInfo);
+console.log(productInfo.value)
+console.log(isProductInfoInViewport.value)
+
+watch(isProductInfoInViewport, () => isProductInfoInViewport.value)
+watch(productInfo, () => productInfo.value)
 
 const addItemToCart = async () => {
   try {
@@ -90,13 +172,13 @@ const addItemToCart = async () => {
       productQuantity.value
     ) {
       const isProductAlreadyInCart = await checkIsItemExist(
-        client,
+        supabase,
         userStore.user?.cart_id as string,
         seletedVariant.value as string
       );
 
       await addProductToCart(
-        client,
+        supabase,
         product.value?.id as string,
         seletedVariant.value as string,
         productQuantity.value,
@@ -104,7 +186,7 @@ const addItemToCart = async () => {
       );
 
       if (!isProductAlreadyInCart) {
-        await cartStore.getCartItemCounts(userStore.user?.cart_id as string);
+        await cartStore.getCartItemCounts(supabase, userStore.user?.cart_id as string);
       }
     }
   } catch (err: any) {
@@ -126,18 +208,49 @@ const renderPromiseToast = () => {
   });
 };
 
+const totalStars = computed(() => {
+  return reviews.value
+    ? reviews.value.reduce((accumulator, currentValue) => {
+      return accumulator + parseInt(currentValue.rating)
+    }, 0)
+    : 0;
+})
+
+const getRatingPercentageAndCounts = (rating: string) => {
+  if (!reviews.value.length) {
+    return {
+      percentage: 0,
+      counts: 0
+    };
+  }
+
+  const ratingCounts = reviews.value.filter(review => {
+    return review.rating === rating;
+  }).length
+
+  const ratingPercentage = (ratingCounts / reviews.value.length) * 100;
+  return {
+    counts: ratingCounts.toFixed(0),
+    percentage: ratingPercentage.toFixed(0),
+  };
+};
+
+
+const RATINGS = ['1', '2', '3', '4', '5']
+
+
 definePageMeta({
   layout: "my-layout",
 });
 </script>
 <template>
   <Toaster position="top-center" richColors />
-  <section v-if="!pending && product" class="sm:flex gap-8 m-5 lg:m-10 font-rubik relative border-b pb-10">
+  <section v-if="!pending && product" class="sm:flex gap-8 m-5 lg:m-10 lg:mx-20 font-rubik relative border-b pb-10">
     <div class="sm:w-[40%] lg:w-[25%] h-full w-full bg-white"
       :class="{ 'lg:sticky lg:top-10 lg:left-10': isProductInfoInViewport }">
       <Carousel :items-to-show="1">
         <Slide v-for="(image, key) in product?.images" :key="key" class="">
-          <img :src="image.url" class="rounded-md object-cover aspect-[4/3" />
+          <img :src="image.url" class="rounded-md object-cover aspect-[4/3]" />
         </Slide>
         <template #addons>
           <!-- <Navigation /> -->
@@ -289,81 +402,61 @@ definePageMeta({
 
   <!-- product reviews section -->
   <section>
-    <div v-if="reviews" class="sm:w-[45%] mx-auto">
-      <template v-for="review in  reviews " :key="review.id">
-        <div class="border-b py-3">
-          <div>
-            <StartRating :read-only="true" :rating-value="+review.rating" rating-size="1.5rem" />
-            <p>{{ formatDate(review.created_at) }}</p>
-          </div>
-          <div class="flex gap-3 items-center">
-            <div class="w-10 h-10 overflow-hidden rounded-full">
-              <img :src="'https://ui-avatars.com/api/?name=' + review.user_name.replaceAll(' ', ' + ')">
-            </div>
-            <p class="font-medium">
-              {{ review.user_name }}
+    <div v-if="reviews" class="mx-20 flex gap-10">
+      <!-- user rating -->
+      <div class="w-min">
+        <h2 class="text-xl whitespace-nowrap font-medium">Product Reviews</h2>
+        <div class="flex items-center gap-5 mt-3">
+          <StartRating :rating-value="1" :rating-count="1" class="mr-3" />
+          <div class="flex items-end">
+            <p class="text-6xl">
+              {{ (totalStars / reviews.length).toFixed(1) }}
             </p>
-          </div>
-          <div class="mt-2">
-            <p class="text-sm text-slate-500">Variant: {{ review.variant }}</p>
-            <p>{{ review.text }}</p>
+            <p>/5</p>
           </div>
         </div>
-        <div class="border-b py-3">
-          <div>
-            <StartRating :read-only="true" :rating-value="+review.rating" rating-size="1.5rem" />
-            <p>{{ formatDate(review.created_at) }}</p>
-          </div>
-          <div class="flex gap-3 items-center">
-            <div class="w-10 h-10 overflow-hidden rounded-full">
-              <img :src="'https://ui-avatars.com/api/?name=' + review.user_name.replaceAll(' ', ' + ')">
+        <div class="text-sm mt-5">
+          <template v-for="(rating, index) in RATINGS.reverse()" :key="index">
+            <div class="w-full flex items-center gap-2">
+              <div class="flex gap-5 items-center">
+                <StartRating :rating-value="1" :rating-count="1" rating-size="1.4rem" />
+                <p>{{ rating }}</p>
+              </div>
+
+              <div class="w-full bg-black/20 rounded-lg h-1.5">
+                <div class="bg-black rounded-lg h-1.5"
+                  :style="{ width: `${getRatingPercentageAndCounts(rating).percentage}%` }">
+                </div>
+              </div>
+              <p>{{ getRatingPercentageAndCounts(rating).counts }}</p>
             </div>
-            <p class="font-medium">
-              {{ review.user_name }}
-            </p>
-          </div>
-          <div class="mt-2">
-            <p class="text-sm text-slate-500">Variant: {{ review.variant }}</p>
-            <p>{{ review.text }}</p>
-          </div>
+          </template>
         </div>
-        <div class="border-b py-3">
-          <div>
-            <StartRating :read-only="true" :rating-value="+review.rating" rating-size="1.5rem" />
-            <p>{{ formatDate(review.created_at) }}</p>
-          </div>
-          <div class="flex gap-3 items-center">
-            <div class="w-10 h-10 overflow-hidden rounded-full">
-              <img :src="'https://ui-avatars.com/api/?name=' + review.user_name.replaceAll(' ', ' + ')">
+      </div>
+
+      <!-- user reviews -->
+      <div class="w-full">
+        <template v-for="review in  reviews" :key="review.id">
+          <div class="border-b py-3">
+            <div>
+              <StartRating :read-only="true" :rating-value="+review.rating" rating-size="1.5rem" />
+              <p>{{ formatDate(review.created_at) }}</p>
             </div>
-            <p class="font-medium">
-              {{ review.user_name }}
-            </p>
-          </div>
-          <div class="mt-2">
-            <p class="text-sm text-slate-500">Variant: {{ review.variant }}</p>
-            <p>{{ review.text }}</p>
-          </div>
-        </div>
-        <div class="border-b py-3">
-          <div>
-            <StartRating :read-only="true" :rating-value="+review.rating" rating-size="1.5rem" />
-            <p>{{ formatDate(review.created_at) }}</p>
-          </div>
-          <div class="flex gap-3 items-center">
-            <div class="w-10 h-10 overflow-hidden rounded-full">
-              <img :src="'https://ui-avatars.com/api/?name=' + review.user_name.replaceAll(' ', ' + ')">
+            <div class="flex gap-3 items-center">
+              <div class="w-10 h-10 overflow-hidden rounded-full">
+                <img :src="'https://ui-avatars.com/api/?name=' + review.user_name.replaceAll(' ', ' + ')">
+              </div>
+              <p class="font-medium">
+                {{ review.user_name }}
+              </p>
             </div>
-            <p class="font-medium">
-              {{ review.user_name }}
-            </p>
+            <div class="mt-2">
+              <p class="text-sm text-slate-500">Variant: {{ review.variant }}</p>
+              <p>{{ review.text }}</p>
+            </div>
           </div>
-          <div class="mt-2">
-            <p class="text-sm text-slate-500">Variant: {{ review.variant }}</p>
-            <p>{{ review.text }}</p>
-          </div>
-        </div>
-      </template>
+        </template>
+      </div>
     </div>
   </section>
   <!-- end of product reviews section -->

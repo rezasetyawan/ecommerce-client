@@ -9,9 +9,9 @@ import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runt
 import { useUserStore } from "../../store/user";
 import { CartItem } from "../../types";
 import {
-deleteCartItem,
-deleteMultipleCartItem,
-getCartItems,
+  deleteCartItem,
+  deleteMultipleCartItem,
+  getCartItems,
 } from "../../utils/useCart";
 
 const { $toast } = useNuxtApp();
@@ -41,7 +41,7 @@ const deleteCartItemHanlder = async (id: string) => {
     await deleteCartItem(supabase, id);
     deleteLocalCartItem(id);
 
-    await cartStore.getCartItemCounts(userStore.user?.cart_id as string);
+    await cartStore.getCartItemCounts(supabase, userStore.user?.cart_id as string);
   } catch (error) { }
 };
 
@@ -92,7 +92,7 @@ const deleteSelectedItems = async () => {
     if (selectedItemsId.value.length > 0) {
       await deleteMultipleCartItem(supabase, selectedItemsId.value);
 
-      await cartStore.getCartItemCounts(userStore.user?.cart_id as string);
+      await cartStore.getCartItemCounts(supabase, userStore.user?.cart_id as string);
 
       // delete local cart items
       cartItems.value = cartItems.value?.filter(

@@ -33,7 +33,8 @@ const cartStore = useCartStore();
 
 await getUser(supabase);
 
-await cartStore.getCartItemCounts(userStore.user?.cart_id as string);
+console.log(userStore.localUser.cart_id ? userStore.localUser.cart_id as string : '')
+await cartStore.getCartItemCounts(supabase, userStore.localUser.cart_id ? userStore.localUser.cart_id as string : '');
 
 const sheetOpen = ref<boolean>(false);
 
@@ -131,10 +132,10 @@ const onSearchSubmit = () => {
           <input
             class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
             placeholder="Search products..." v-model="searchKey" @input="() => {
-                productSuggestions = [];
-                productSuggestionsLoading = true;
-                getProductSuggestions();
-              }
+              productSuggestions = [];
+              productSuggestionsLoading = true;
+              getProductSuggestions();
+            }
               " @keyup.enter="onSearchSubmit" @focus="showProductSuggestions = true" @blur="hideProductSuggetions" />
         </form>
         <div class="absolute bg-white w-80 shadow-sm rounded-lg top-14 p-3 border z-[2000]"
