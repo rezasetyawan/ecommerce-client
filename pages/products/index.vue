@@ -3,6 +3,7 @@ import { ref } from "vue";
 import { useMyFetch } from "../../composables/useMyFetch";
 import { Product } from "../../types/index";
 import { toRupiah } from "../../utils";
+import StarRating from "~/components/elements/StarRating.vue";
 
 interface ApiResponse {
   data: Product[];
@@ -24,13 +25,10 @@ const getProducts = async () => {
 
     const productData = data.value as ApiResponse;
     products.value = productData.data;
-    console.log(products.value)
   } catch (error) {
     console.error(error);
   }
 };
-
-console.log(products.value);
 
 onMounted(async () => {
   await getProducts();
@@ -41,6 +39,14 @@ onBeforeRouteUpdate(async (to, from) => {
   searchKey.value = to.query.search as string
   await getProducts();
 });
+
+const getAverageRating = (rating: string[]) => {
+  if (!rating.length) return 0
+
+  return +(rating.reduce((accumulator, currentValue) => {
+    return accumulator + parseInt(currentValue)
+  }, 0) / rating.length).toFixed(1)
+}
 
 watch(
   [route],
@@ -55,25 +61,30 @@ definePageMeta({
 });
 </script>
 <template>
-  <div class="flex flex-col gap-y-8 px-4 sm:px-6 lg:px-8 my-8" v-if="products">
+  <div class="px-4 sm:px-6 lg:px-8 my-8" v-if="products">
     <div class="space-y-4">
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div class="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6">
         <template v-for="product in products">
-          <NuxtLink class="bg-white group cursor-pointer rounded-xl border p-3 space-y-2"
+          <NuxtLink class="bg-white group cursor-pointer rounded-xl border p-1 space-y-2 lg:text-p-3"
             :to="'/product/' + product.slug">
             <div class="aspect-square rounded-xl bg-gray-100 relative">
               <img :src="product.image_url" alt="" fill class="aspect-square object-cover rounded-md" />
             </div>
             <div>
-              <p class="font-semibold text-lg">{{ product.name }}</p>
-              <p class="text-sm text-gray-500">{{ product.category }}</p>
+              <p class="font-medium truncate line-clamp-2 text-base">{{ product.name }}</p>
+              <p class="text-xs text-gray-500 lg:text-sm">{{ product.category }}</p>
             </div>
-            <div class="flex items-center justify-between font-medium">
+            <div class="flex items-center justify-between font-medium truncate text-sm lg:text-base">
               {{ toRupiah(product.price) }}
             </div>
 
-            <div class="flex items-center justify-between text-slate-600 text-sm">
-              {{ product.sold }} sold
+            <div class="flex gap-1 items-center text-slate-600 text-xs lg:text-sm">
+              <div class="flex items-center">
+                <StarRating :rating-value="1" :rating-count="1" class="w-[1.3rem] h-[1.3rem]" rating-size="1.3rem" />
+                <p>{{ getAverageRating(product.rating) }}</p>
+              </div>
+              <span>|</span>
+              <p>{{ product.sold }} sold</p>
             </div>
           </NuxtLink>
         </template>

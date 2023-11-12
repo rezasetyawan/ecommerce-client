@@ -7,6 +7,7 @@ interface Product {
     category: string
     image_url: string
     slug: string
+    rating: string[] | []
 }
 
 interface ProductDetail {
@@ -89,6 +90,7 @@ interface Order {
     | "CANCELLED"
     | "FINISHED";
     order_items: OrderItem[];
+    unreviewed_product_counts: number
 }
 
 interface OrderDetail {

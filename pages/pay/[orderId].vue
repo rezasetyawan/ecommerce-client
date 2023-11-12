@@ -8,6 +8,7 @@ import { Label } from "~/components/ui/label";
 import { Button } from "~/components/ui/button";
 import { addImage } from "~/utils/useImage";
 import { updateProductStocks } from "~/utils/useProduct";
+import { ArrowLeft } from "lucide-vue-next";
 
 const supabase = useSupabaseClient();
 const config = useRuntimeConfig();
@@ -84,7 +85,7 @@ const getOrderProductVariantIds = async (
   }
 };
 
-onMounted(async () => {
+onBeforeMount(async () => {
   const amount = await getPaymentAmount(supabase, orderId.value);
   paymentAmount.value = amount;
 
@@ -176,17 +177,22 @@ definePageMeta({
 });
 </script>
 <template>
-  <section class="mx-20 xl:mx-80">
+  <div class="my-1 mx-1 z-10 sm:mx-4 md:mx-12 sm:absolute lg:mx-48 xl:mx-64">
+    <NuxtLink :to="'/orders'" class="p-3 w-auto block">
+      <ArrowLeft />
+    </NuxtLink>
+  </div>
+  <section class="m-5 sm:mx-10 md:mx-16 lg:mx-60 xl:mx-80">
     <Toaster position="top-center" richColors />
-    <h2 class="text-center font-semibold text-2xl">Product Payment</h2>
-    <p class="my-7">
+    <h2 class="text-center font-semibold text-xl lg:text-2xl">Product Payment</h2>
+    <p class="my-3 text-sm lg:text-base lg:my-5">
       Please make a payment of to
       <span class="font-medium">{{ toRupiah(paymentAmount) }}</span> the Account
       Number we have provided below, so that we can process your order.
     </p>
 
-    <div>
-      <p class="uppercase font-medium text-lg my-2">Ini toko</p>
+    <div class="text-sm lg:text-base">
+      <p class="uppercase font-medium my-2">Ini toko</p>
       <div class="w-[50%]">
         <div class="flex gap-10">
           <p class="w-40 font-medium">Bank</p>
@@ -206,26 +212,26 @@ definePageMeta({
     <form class="my-10" v-show="showPaymentConfimation" @submit.prevent="renderPromiseToast">
       <Label>Account name</Label>
       <Input type="text" class="mt-2" v-model="paymentConfirmationInfo.name" required />
-      <Label class="mt-3">Bank name</Label>
+      <Label class="mt-3 text-sm lg:text-base">Bank name</Label>
       <Input type="text" class="mt-2" v-model="paymentConfirmationInfo.bank_name" required />
-      <Label class="mt-3">Transfer amount</Label>
+      <Label class="mt-3 text-sm lg:text-base">Transfer amount</Label>
       <div class="relative">
         <Input type="number" class="mt-2" v-model="paymentConfirmationInfo.amount" required />
         <p class="absolute top-[25%] bg-white text-sm px-3">
           {{ toRupiah(paymentConfirmationInfo.amount) }}
         </p>
       </div>
-      <Label class="mt-3">Struck</Label>
+      <Label class="mt-3 text-sm lg:text-base">Struck</Label>
 
       <img v-if="struck" :src="getImageUrl()" alt="Selected Image" class="max-w-[150px] mt-3" />
       <input type="file"
         class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 mt-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         accept="image/png, image/jpeg, image/jpg" @change="(event: Event) => onFileChangeHandler(event)" required />
 
-      <Button class="w-full my-16" type="submit">Submit</Button>
+      <Button class="w-full my-16 py-2" type="submit">Submit</Button>
     </form>
 
-    <Alert class="mt-20">
+    <Alert class="mt-10">
       <AlertDescription>
         After you make a payment, please confirm the payment.
         <button @click="showPaymentConfimation = !showPaymentConfimation" class="underline">

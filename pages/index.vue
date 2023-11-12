@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { nanoid } from "nanoid";
+import StarRating from "~/components/elements/StarRating.vue";
+import { useUserStore } from "~/store/user";
 import { useMyFetch } from "../composables/useMyFetch";
 import { useSupabaseClient } from "../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 import { Product } from "../types/index";
-import { toRupiah, getStringBeforeAtSign } from "../utils";
-import { useUserStore } from "~/store/user"
+import { getStringBeforeAtSign, toRupiah } from "../utils";
 
 interface ApiResponse {
   data: Product[];
@@ -45,6 +46,14 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   }
 });
 
+const getAverageRating = (rating: string[]) => {
+  if (!rating.length) return 0
+
+  return +(rating.reduce((accumulator, currentValue) => {
+    return accumulator + parseInt(currentValue)
+  }, 0) / rating.length).toFixed(1)
+}
+
 definePageMeta({
   layout: "my-layout",
 });
@@ -65,29 +74,33 @@ definePageMeta({
     </template>
   </div>
 
-  <div class="flex flex-col gap-y-8 px-4 sm:px-6 lg:px-8">
+  <div class="px-4 sm:px-6 lg:px-8 my-8" v-if="products">
     <div class="space-y-4">
-      <h3 class="font-bold text-3xl">Products</h3>
-
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
+      <h3 class="font-bold text-lg lg:text-2xl">Products</h3>
+      <div class="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6">
         <template v-for="product in products">
-          <NuxtLink class="bg-white group cursor-pointer rounded-lg border p-1.5 space-y-2 md:p-3"
+          <NuxtLink class="bg-white group cursor-pointer rounded-xl border p-1 space-y-2 lg:text-p-3"
             :to="'/product/' + product.slug">
             <div class="aspect-square rounded-lg bg-gray-100 relative">
               <img :src="product.image_url" alt="" fill class="aspect-square object-cover rounded-md" />
             </div>
             <div>
-              <p class="font-semibold text-sm lg:text-lg">{{ product.name }}</p>
+              <p class="font-medium text-sm line-clamp-2">{{ product.name }}</p>
               <p class="text-gray-500 text-sm lg:text-lg">
                 {{ product.category }}
               </p>
             </div>
-            <div class="flex items-center justify-between font-medium text-sm lg:text-lg">
+            <div class="flex items-center justify-between font-medium truncate text-sm lg:text-base">
               {{ toRupiah(product.price) }}
             </div>
 
-            <div class="flex items-center justify-between text-slate-600 text-sm">
-              {{ product.sold }} sold
+            <div class="flex gap-1 items-center text-slate-600 text-xs lg:text-sm">
+              <div class="flex items-center">
+                <StarRating :rating-value="1" :rating-count="1" class="w-[1.3rem] h-[1.3rem]" rating-size="1.3rem" />
+                <p>{{ getAverageRating(product.rating) }}</p>
+              </div>
+              <span>|</span>
+              <p>{{ product.sold }} sold</p>
             </div>
           </NuxtLink>
         </template>

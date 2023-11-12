@@ -17,6 +17,7 @@ import { getUserMainAddress } from "~/utils/useAddress";
 import { addOrder, addOrderProduct, addPayment } from "~/utils/useOrder";
 import { Button } from "../../components/ui/button";
 import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
+import { ArrowLeft } from "lucide-vue-next";
 
 interface Shipment {
   service: string;
@@ -282,11 +283,14 @@ definePageMeta({
 });
 </script>
 <template>
-  <section class="mx-80 my-10">
+   <div class="my-1 mx-1 z-10 sm:mx-20 md:mx-28 sm:absolute lg:mx-64">
+    <NuxtLink :to="'/cart'" class="p-3 w-auto block"><ArrowLeft /></NuxtLink>
+  </div>
+  <section class="mx-5 my-3 sm:mx-28 md:mx-40 lg:my-10 lg:mx-80">
     <Toaster position="top-center" richColors />
     <div>
-      <h2 class="font-semibold border-b w-full pb-2">Shipping Address</h2>
-      <div class="text-sm mt-3">
+      <h2 class="font-semibold border-b w-full pb-1 text-sm lg:pb-2 lg:text-base">Shipping Address</h2>
+      <div class="text-xs mt-3 lg:text-sm">
         <p class="font-semibold">{{ address?.name }}</p>
         <p class="">{{ address?.phone_number }}</p>
         <p>
@@ -295,42 +299,42 @@ definePageMeta({
         </p>
       </div>
     </div>
-    <div class="mt-8 flex gap-10 w-full">
-      <div class="">
+    <div class="mt-8 gap-10 w-full justify-between sm:flex">
+      <div>
         <template v-for="product in cartStore.selectedCartItems">
           <div class="flex gap-3 mb-2">
-            <img :src="product.image_url" class="w-40" />
+            <img :src="product.image_url" class="w-14 lg:w-20" />
             <div>
-              <h2>{{ product.name }}</h2>
+              <h2 class="text-sm font-medium lg:text-base">{{ product.name }}</h2>
               <div>
                 <p class="text-sm">{{ product.quantity }} products</p>
               </div>
-              <p class="font-semibold">
+              <p class="font-semibold text-xs">
                 {{ toRupiah(product.quantity * product.price) }}
               </p>
             </div>
           </div>
         </template>
       </div>
-      <div class="">
+      <div class="text-xs mt-10 sm:mt-0">
         <Select v-if="shipmentCost" v-model="selectedShipmentService" @update:open="(isOpen: boolean) => {
           openShipmentItem = isOpen
         }">
           <SelectTrigger class="mt-2">
-            <SelectValue placeholder="Select shipment" class="w-60" />
+            <SelectValue placeholder="Select shipment" class="w-full sm:w-60" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup class="max-h-60">
-              <SelectLabel>Shipment</SelectLabel>
+              <SelectLabel class="w-full">Shipment</SelectLabel>
               <template v-for="data in shipmentCost" :key="data.service">
                 <SelectItem :value="data.service">
-                  <p class="bg-white w-full h-full" v-show="selectedShipmentService === data.service ||
+                  <p class="w-full h-full text-sm" v-show="selectedShipmentService === data.service ||
                     !openShipmentItem
                     ">
                     JNE {{ data.service }}
                   </p>
 
-                  <div class="flex gap-10" v-show="!(selectedShipmentService === data.service)">
+                  <div class="flex gap-10 text-sm justify-between w-full" v-show="!(selectedShipmentService === data.service)">
                     <div class="w-20">
                       <p class="font-semibold">JNE {{ data.service }}</p>
                       <p>{{ data.etd }} days</p>
@@ -344,11 +348,11 @@ definePageMeta({
         </Select>
       </div>
     </div>
-    <div class="flex justify-between items-center font-semibold mt-8 border-t p-2 w-full">
+    <div class="flex justify-between items-center font-semibold mt-8 border-t p-2 w-full text-sm lg:text-base">
       <p>Subtotal</p>
       <p>{{ toRupiah(itemsTotalPrice) }}</p>
     </div>
 
-    <Button class="w-full mt-10" @click="renderPromiseToast">Checkout</Button>
+    <Button class="w-full mt-10 text-xs lg:text-sm" @click="renderPromiseToast">Checkout</Button>
   </section>
 </template>

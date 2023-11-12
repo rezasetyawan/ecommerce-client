@@ -4,7 +4,7 @@ import { ref } from "vue";
 import { useRoute } from "vue-router";
 import { Carousel, Pagination, Slide } from "vue3-carousel";
 import "vue3-carousel/dist/carousel.css";
-import StartRating from "~/components/elements/StartRating.vue";
+import StarRating from "~/components/elements/StarRating.vue";
 import { useCartStore } from "~/store/cart";
 import { useUserStore } from "~/store/user";
 import { Button } from "../../components/ui/button";
@@ -13,6 +13,7 @@ import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runt
 import { ProductDetail } from "../../types";
 import { addProductToCart, checkIsItemExist } from "../../utils/useCart";
 import { formatDate, toRupiah } from "~/utils"
+import { ArrowLeft } from "lucide-vue-next";
 
 const { $toast } = useNuxtApp();
 const userStore = useUserStore();
@@ -208,7 +209,7 @@ const renderPromiseToast = () => {
   });
 };
 
-const totalStars = computed(() => {
+const totalRating = computed(() => {
   return reviews.value
     ? reviews.value.reduce((accumulator, currentValue) => {
       return accumulator + parseInt(currentValue.rating)
@@ -238,6 +239,8 @@ const getRatingPercentageAndCounts = (rating: string) => {
 
 const RATINGS = ['1', '2', '3', '4', '5']
 
+const showFullDesc = ref(false)
+
 
 definePageMeta({
   layout: "my-layout",
@@ -245,9 +248,12 @@ definePageMeta({
 </script>
 <template>
   <Toaster position="top-center" richColors />
-  <section v-if="!pending && product" class="sm:flex gap-8 m-5 lg:m-10 lg:mx-20 font-rubik relative border-b pb-10">
+  <div class="my-1 mx-1 z-10 sm:mx-2 sm:absolute lg:mx-8">
+    <NuxtLink :to="'/products'"><ArrowLeft /></NuxtLink>
+  </div>
+  <section v-if="!pending && product" class="sm:flex gap-8 m-5 sm:mx-10 lg:m-10 lg:mx-20 font-rubik relative border-b pb-10">
     <div class="sm:w-[40%] lg:w-[25%] h-full w-full bg-white"
-      :class="{ 'lg:sticky lg:top-10 lg:left-10': isProductInfoInViewport }">
+      :class="{ 'lg:sticky lg:top-[0%] lg:left-10': isProductInfoInViewport }">
       <Carousel :items-to-show="1">
         <Slide v-for="(image, key) in product?.images" :key="key" class="">
           <img :src="image.url" class="rounded-md object-cover aspect-[4/3]" />
@@ -261,20 +267,25 @@ definePageMeta({
 
     <!-- product info -->
     <div class="sm:w-[50%]" ref="productInfo">
-      <h2 class="text-2xl font-semibold">{{ product?.name }}</h2>
-      <div>
+      <h2 class="text-lg font-semibold lg:text-2xl">{{ product?.name }}</h2>
+      <div class="flex items-center gap-2 text-sm lg:text-base">
         <p>{{ product.sold }} <span class="font-medium">Sold</span></p>
+        <span>•</span>
+        <div class="flex gap-3 items-center">
+          <StarRating :rating-value="1" :rating-count="1" class="mr-3" rating-size="1.6rem" />
+          <p>{{ (totalRating / reviews.length).toFixed(1) }} ({{ reviews.length }} rating)</p>
+        </div>
       </div>
       <div class="my-5">
-        <p class="text-2xl font-semibold">{{ toRupiah(price) }}</p>
+        <p class="text-lg font-semibold lg:text-2xl">{{ toRupiah(price) }}</p>
       </div>
 
       <div>
-        <p class="text-lg font-medium">Variants:</p>
-        <div class="flex gap-2 flex-wrap my-4">
+        <p class="text-base font-medium lg:text-lg">Variants:</p>
+        <div class="flex gap-2 flex-wrap my-2">
           <template v-for="variant in product.variants" :key="variant.id">
             <label
-              class="font-medium px-[0.8em] py-[0.4em] min-w-[50px] text-sm text-center rounded-xl hover:cursor-pointer"
+              class="font-medium px-[0.8em] py-[0.4em] min-w-[50px] text-xs text-center rounded-xl hover:cursor-pointer md:text-sm"
               :class="{ 'bg-slate-200': variant.id === seletedVariant }">
               <input type="radio" :value="variant.id" v-model="seletedVariant" class="hidden w-full h-full" />
               {{ variant.value }}
@@ -283,7 +294,7 @@ definePageMeta({
         </div>
       </div>
       <hr />
-      <p class="my-3 line-clamp-6">
+      <p class="my-3 text-sm" :class="{ 'line-clamp-6': !showFullDesc }">
         {{ product.description }} Lorem ipsum dolor sit amet, consectetur
         adipiscing elit. Sed id justo a mauris aliquet hendrerit. Nullam aliquet
         ex vel aliquet fermentum. Nam commodo hendrerit sapien, et consequat
@@ -362,6 +373,7 @@ definePageMeta({
         vel sollicitudin dolor finibus. Vivamus gravida, ipsum ut fermentum
         cursus,
       </p>
+      <button type="button" class="text-sm" @click="showFullDesc = !showFullDesc">{{ showFullDesc ? 'See less' : 'See more' }}</button>
     </div>
     <!-- end of product info -->
 
@@ -402,24 +414,24 @@ definePageMeta({
 
   <!-- product reviews section -->
   <section>
-    <div v-if="reviews" class="mx-20 flex gap-10">
+    <div v-if="reviews" class="mx-5 lg:mx-20 md:flex gap-10">
       <!-- user rating -->
-      <div class="w-min">
-        <h2 class="text-xl whitespace-nowrap font-medium">Product Reviews</h2>
+      <div class="w-full max-md:border-b max-md:pb-4 md:w-min">
+        <h2 class="text-lg whitespace-nowrap font-medium lg:text-xl">Product Reviews</h2>
         <div class="flex items-center gap-5 mt-3">
-          <StartRating :rating-value="1" :rating-count="1" class="mr-3" />
+          <StarRating :rating-value="1" :rating-count="1" class="mr-3" />
           <div class="flex items-end">
-            <p class="text-6xl">
-              {{ (totalStars / reviews.length).toFixed(1) }}
+            <p class="text-2xl lg:text-6xl">
+              {{ (totalRating / reviews.length).toFixed(1) }}
             </p>
-            <p>/5</p>
+            <p class="text-slate-500 text-sm lg:text-base">/5</p>
           </div>
         </div>
         <div class="text-sm mt-5">
           <template v-for="(rating, index) in RATINGS.reverse()" :key="index">
             <div class="w-full flex items-center gap-2">
               <div class="flex gap-5 items-center">
-                <StartRating :rating-value="1" :rating-count="1" rating-size="1.4rem" />
+                <StarRating :rating-value="1" :rating-count="1" rating-size="1.4rem" />
                 <p>{{ rating }}</p>
               </div>
 
@@ -437,21 +449,21 @@ definePageMeta({
       <!-- user reviews -->
       <div class="w-full">
         <template v-for="review in  reviews" :key="review.id">
-          <div class="border-b py-3">
-            <div>
-              <StartRating :read-only="true" :rating-value="+review.rating" rating-size="1.5rem" />
-              <p>{{ formatDate(review.created_at) }}</p>
+          <div class="border-b py-3 text-sm">
+            <div class="flex flex-wrap gap-28 items-center">
+              <StarRating :read-only="true" :rating-value="+review.rating" rating-size="1.5rem" />
+              <p class="text-sm">{{ formatDate(review.created_at) }}</p>
             </div>
-            <div class="flex gap-3 items-center">
-              <div class="w-10 h-10 overflow-hidden rounded-full">
+            <div class="flex gap-3 items-center mt-1">
+              <div class="w-8 h-8 overflow-hidden rounded-full lg:w-10 lg:h-10">
                 <img :src="'https://ui-avatars.com/api/?name=' + review.user_name.replaceAll(' ', ' + ')">
               </div>
               <p class="font-medium">
                 {{ review.user_name }}
               </p>
             </div>
-            <div class="mt-2">
-              <p class="text-sm text-slate-500">Variant: {{ review.variant }}</p>
+            <div class="mt-2 text-sm">
+              <p class="text-slate-500">Variant: {{ review.variant }}</p>
               <p>{{ review.text }}</p>
             </div>
           </div>

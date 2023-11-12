@@ -67,7 +67,7 @@ interface User {
 
 export const useUserStore = defineStore('auth', () => {
     const user = ref<User | null>()
-    const localUser = useStorage<User | any>('user', {}, localStorage, {mergeDefaults: true})
+    const localUser = useStorage<User>('user', {} as User, localStorage, {mergeDefaults: true})
 
     const getUser = async (supabase: SupabaseClient) => {
         try {

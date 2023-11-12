@@ -81,72 +81,79 @@ definePageMeta({
 });
 </script>
 <template>
-  <section class="mx-20 my-10 space-y-5">
+  <section class="m-5 lg:mx-20 lg:my-10 space-y-2">
     <template v-for="order in orders" :key="order.id">
       <div class="p-3 rounded-lg shadow-md">
         <div class="flex gap-3 items-center">
-          <p class="font-medium">{{ formatDate(order.created_at) }}</p>
-          <p class="font-medium bg-slate-50 p-2 text-xs rounded-md">
+          <p class="font-medium text-xs whitespace-nowrap lg:text-base">{{ formatDate(order.created_at) }}</p>
+          <p class="font-medium bg-slate-50 p-2 text-xs rounded-md whitespace-nowrap">
             {{ getStatusMessage(order.status) }}
           </p>
         </div>
-        <div class="flex gap-10 mt-4">
-          <div class="w-full space-y-3">
+        <div class="gap-10 mt-4 md:flex">
+          <div class="w-full space-y-2 lg:space-y-3">
             <template v-for="item in order.order_items" :key="item.id">
               <div class="flex gap-3 items-center">
-                <img :src="item.image_url" class="w-20" />
+                <img :src="item.image_url" class="w-14 lg:w-20" />
                 <div class="w-full">
-                  <h2 class="text-lg font-semibold">
+                  <h2 class="text-sm font-semibold truncate lg:text-base">
                     <NuxtLink :to="'/product/' + item.slug">{{
                       item.name
                     }}</NuxtLink>
                   </h2>
-                  <p class="font-medium text-sm">{{ item.variant }}</p>
-                  <p class="text-black/70 font-medium text-sm">
+                  <p class="font-medium text-xs lg:text-sm">{{ item.variant }}</p>
+                  <p class="text-black/70 font-medium text-xs lg:text-sm">
                     {{ item.quantity }} products x {{ toRupiah(item.price) }}
                   </p>
                 </div>
               </div>
             </template>
           </div>
-          <div class="w-full self-end">
-            <p>Total</p>
-            <p class="font-medium">{{ toRupiah(order.total) }}</p>
-          </div>
-        </div>
-        <div class="flex justify-end">
-          <Button variant="link">
-            <NuxtLink :to="'/order/' + order.id">See detail</NuxtLink>
-          </Button>
-          <Button class="px-10" v-if="order.status === 'PAYMENT'">
-            <NuxtLink :to="'/pay/' + order.id">Pay Now</NuxtLink>
-          </Button>
-          <div v-if="order.status === 'SHIPPING'">
-            <AlertDialog>
-              <AlertDialogTrigger as-child>
-                <Button variant="outline" class="px-10">RECEIVED </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will finished the order
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction @click="receiveProductHandler(order.id)">Continue</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
+          <div class="w-full self-end text-xs flex justify-between mt-2 lg:text-base">
+            <div>
+              <p>Total</p>
+              <p class="font-medium text-xs lg:text-base">{{ toRupiah(order.total) }}</p>
+            </div>
+            <div class="flex justify-end self-end items-end gap-2">
+              <Button variant="link" class="whitespace-nowrap text-xs lg:text-sm" size="sm">
+                <NuxtLink :to="'/order/' + order.id">See detail</NuxtLink>
+              </Button>
+              <NuxtLink :to="'/pay/' + order.id" v-if="order.status === 'PAYMENT'">
+                <Button class="px-5 lg:px-10 text-xs whitespace-nowrap lg:text-sm" size="sm">
+                  Pay Now
+                </Button>
+              </NuxtLink>
+              <div v-if="order.status === 'SHIPPING'">
+                <AlertDialog>
+                  <AlertDialogTrigger as-child>
+                    <Button variant="outline" class="px-10">RECEIVED </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will finished the order
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction @click="receiveProductHandler(order.id)">Continue</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
 
-          <div v-if="order.status === 'FINISHED'">
-            <Button class="px-10">
-              <NuxtLink :to="'/review/' + order.id">Review</NuxtLink>
-            </Button>
+              <div v-if="order.status === 'FINISHED' && order.unreviewed_product_counts > 0">
+                <NuxtLink :to="'/review/' + order.id">
+                  <Button class="px-5 lg:px-10 text-xs lg:text-sm" size="sm">
+                    Review
+                  </Button>
+                </NuxtLink>
+              </div>
+            </div>
           </div>
         </div>
+
       </div>
     </template>
   </section>

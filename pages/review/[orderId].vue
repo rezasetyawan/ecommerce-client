@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { Button } from '~/components/ui/button';
 import { useMyFetch } from "../../composables/useMyFetch";
 import { useUserStore } from "../../store/user";
+import AddReview from '~/components/elements/review/AddReview.vue';
+import { ArrowLeft } from 'lucide-vue-next';
 
 interface ReviewItem {
     product_name: string
@@ -16,8 +17,6 @@ interface ApiResponse {
     data: ReviewItem[]
 }
 const userStore = useUserStore()
-
-const router = useRouter()
 const route = useRoute()
 const orderId = ref(route.params.orderId as string)
 const reviewItems = ref<ReviewItem[]>([])
@@ -32,31 +31,21 @@ const { data } = await useMyFetch('/api/review-items', {
 const apiResponse = data.value as ApiResponse
 reviewItems.value = apiResponse.data
 
-const onReview = (id: string, variant: string) => {
-    router.push({
-        path: '/review/product/' + id, query: {
-            orderId: orderId.value,
-            variant: variant
-        }
-    })
-}
-
 definePageMeta({
     layout: 'my-layout'
 })
 </script>
 <template>
-    <section class="mx-80 pt-5">
-        <template v-for="(item, index) in reviewItems" :key="index">
-            <div class="flex gap-3 justify-between shadow-md rounded-lg p-2 mb-4">
-                <div class="flex gap-3">
-                    <img :src="item.image_url" class="w-28" :alt="item.product_name">
-                    <h2 class="font-medium">{{ item.product_name }}</h2>
-                </div>
-                <Button class="self-end" @click="onReview(item.id, item.variant)">
-                    Write a review
-                </Button>
-            </div>
-        </template>
+    <div class="my-1 mx-1 z-10 sm:mx-0 md:mx-2 sm:absolute lg:mx-48 xl:mx-64">
+        <NuxtLink :to="'/orders'" class="p-3 w-auto block">
+            <ArrowLeft />
+        </NuxtLink>
+    </div>
+    <section class="m-5 sm:mx-10 md:mx-16 lg:mx-60 xl:mx-80">
+        <div v-for="item in reviewItems" :key="item.id">
+            <AddReview :item="item" />
+        </div>
+
+        <h2 v-if="!reviewItems.length">EMPTY, YOUR ALREADY REVIEWED THE PRODUCTS</h2>
     </section>
 </template>

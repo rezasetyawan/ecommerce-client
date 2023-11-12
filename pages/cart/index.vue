@@ -1,4 +1,15 @@
 <script setup lang="ts">
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
 import { Trash2 } from "lucide-vue-next";
 import { ref } from "vue";
 import { useCartStore } from "~/store/cart";
@@ -122,9 +133,9 @@ definePageMeta({
 <template>
   <Toaster position="top-center" richColors />
   <section v-if="cartItems" class="sm:flex gap-8 m-2 lg:m-10 font-rubik mb-[1200px] relative">
-    <div class="w-[75%]">
-      <div class="border-b px-2">
-        <h2 class="text-2xl font-semibold w-full mb-2 pb-2">Cart</h2>
+    <div class="md:w-[60%] lg:w-[75%]">
+      <div class="border-b p-2">
+        <h2 class="text-lg font-semibold w-full mb-2 pb-2 lg:text-2xl">Cart</h2>
         <div class="flex justify-between items-center">
           <div class="flex gap-3 items-center mb-2">
             <Checkbox class="w-5 h-5" :checked="selectedItemsId.length === cartItems.length &&
@@ -132,9 +143,24 @@ definePageMeta({
               " @update:checked="(ischecked: boolean) => selectAllItemHandler(ischecked)" />
             <p>Select all</p>
           </div>
-          <button v-show="selectedItemsId.length" @click="deleteSelectedItems()">
-            Delete
-          </button>
+          <!-- TODO ADD ALERT DIALOG -->
+          <AlertDialog>
+            <AlertDialogTrigger as-child>
+              <Button v-show="selectedItemsId.length" class="px-10" size="sm">Delete </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will delete selected product
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction @click="deleteSelectedItems()">Continue</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
@@ -143,9 +169,9 @@ definePageMeta({
           <div class="flex gap-2 items-center">
             <Checkbox @update:checked="() => handleProductSelectionChange(item.id)" class="w-5 h-5"
               :checked="selectedItemsId.includes(item.id)" />
-            <img class="ascpet-square w-24" :src="item.image_url" />
+            <img class="ascpet-square w-16 lg:w-24" :src="item.image_url" />
             <div>
-              <h3 class="text-base font-medium">
+              <h3 class="text-base font-medium line-clamp-1">
                 <NuxtLink :to="'/product/' + item.slug">{{
                   item.name
                 }}</NuxtLink>
@@ -159,9 +185,9 @@ definePageMeta({
 
           <div class="flex gap-4 justify-end mt-1">
             <button @click="deleteCartItemHanlder(item.id)">
-              <Trash2 />
+              <Trash2 class="w-5" />
             </button>
-            <div class="flex gap-2 border rounded-md px-1 py-1 justify-between items-center">
+            <div class="flex gap-2 border rounded-md px-1 py-1 justify-between items-center mt-1 text-sm lg:text-base">
               <button @click="item.quantity--"
                 class="w-6 h-6 flex items-center justify-center hover:bg-slate-100 rounded-md" :class="{
                   'cursor-not-allowed': item.quantity === 1,
@@ -178,7 +204,7 @@ definePageMeta({
         </div>
       </template>
     </div>
-    <div class="border rounded-lg p-3 w-[20%] flex-col justify-between fixed bg-white right-10 hidden lg:flex">
+    <div class="border rounded-lg p-3 flex-col justify-between fixed bg-white right-10 hidden md:flex">
       <div>
         <h3 class="font-medium text-lg">Shopping summary</h3>
         <p class="text-base my-2"></p>
@@ -197,4 +223,11 @@ definePageMeta({
       </div>
     </div>
   </section>
+  <div class="fixed bottom-0 left-0 w-full flex justify-end items-center bg-white p-3 gap-3 md:hidden">
+    <div class="text-xs">
+      <p>Subtotal</p>
+      <p>{{ toRupiah(totalPriceOfSelectedItems) }}</p>
+    </div>
+    <Button size="sm" class="text-sm">Checkout ({{ selectedItems?.length }})</Button>
+  </div>
 </template>
