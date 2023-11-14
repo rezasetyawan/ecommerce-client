@@ -61,17 +61,17 @@ definePageMeta({
 });
 </script>
 <template>
-  <div class="px-4 sm:px-6 lg:px-8 my-8" v-if="products">
+  <div class="px-4 sm:px-6 lg:px-8 my-4" v-if="products">
     <div class="space-y-4">
       <div class="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6">
         <template v-for="product in products">
           <NuxtLink class="bg-white group cursor-pointer rounded-xl border p-1 space-y-2 lg:text-p-3"
             :to="'/product/' + product.slug">
             <div class="aspect-square rounded-xl bg-gray-100 relative">
-              <img :src="product.image_url" alt="" fill class="aspect-square object-cover rounded-md" />
+              <img :src="product.image_url" alt="" fill class="aspect-square object-contain rounded-md" />
             </div>
             <div>
-              <p class="font-medium truncate line-clamp-2 text-base">{{ product.name }}</p>
+              <p class="font-medium truncate text-base">{{ product.name }}</p>
               <p class="text-xs text-gray-500 lg:text-sm">{{ product.category }}</p>
             </div>
             <div class="flex items-center justify-between font-medium truncate text-sm lg:text-base">

@@ -46,6 +46,7 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   }
 });
 
+// TODO: UPDATE RATING CALCULATION
 const getAverageRating = (rating: string[]) => {
   if (!rating.length) return 0
 
@@ -81,14 +82,12 @@ definePageMeta({
         <template v-for="product in products">
           <NuxtLink class="bg-white group cursor-pointer rounded-xl border p-1 space-y-2 lg:text-p-3"
             :to="'/product/' + product.slug">
-            <div class="aspect-square rounded-lg bg-gray-100 relative">
-              <img :src="product.image_url" alt="" fill class="aspect-square object-cover rounded-md" />
+            <div class="aspect-square rounded-xl bg-gray-100 relative">
+              <img :src="product.image_url" alt="" fill class="aspect-square object-contain rounded-md" />
             </div>
             <div>
-              <p class="font-medium text-sm line-clamp-2">{{ product.name }}</p>
-              <p class="text-gray-500 text-sm lg:text-lg">
-                {{ product.category }}
-              </p>
+              <p class="font-medium truncate text-base">{{ product.name }}</p>
+              <p class="text-xs text-gray-500 lg:text-sm">{{ product.category }}</p>
             </div>
             <div class="flex items-center justify-between font-medium truncate text-sm lg:text-base">
               {{ toRupiah(product.price) }}

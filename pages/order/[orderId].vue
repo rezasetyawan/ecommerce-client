@@ -50,10 +50,12 @@ definePageMeta({
 });
 </script>
 <template>
-  <div class="my-1 mx-1 sm:mx-10 md:mx-2 md:absolute lg:mx-48">
-    <NuxtLink :to="'/orders'" class="p-3 w-auto block"><ArrowLeft /></NuxtLink>
+  <div class="mx-1 sm:mx-10 md:mx-2 md:absolute lg:mx-48">
+    <NuxtLink :to="'/orders'" class="md:p-3 w-fit block">
+      <ArrowLeft />
+    </NuxtLink>
   </div>
-  <section v-if="order" class="my-3 mx-1 sm:mx-10 lg:my-10 lg:mx-60">
+  <section v-if="order" class="md:my-3 mx-1 sm:mx-10 lg:my-10 lg:mx-60">
     <div class="p-3 lg:px-10 rounded-lg shadow-md">
       <div class="space-y-2">
         <p class="font-medium bg-slate-100 p-2 text-xs rounded-md w-fit lg:text-sm">

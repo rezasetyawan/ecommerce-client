@@ -14,6 +14,7 @@ import { ProductDetail } from "../../types";
 import { addProductToCart, checkIsItemExist } from "../../utils/useCart";
 import { formatDate, toRupiah } from "~/utils"
 import { ArrowLeft } from "lucide-vue-next";
+import ReviewItem from "~/components/elements/review/ReviewItem.vue"
 
 const { $toast } = useNuxtApp();
 const userStore = useUserStore();
@@ -40,6 +41,7 @@ interface ReviewApiResponse {
   data: Review[]
 }
 
+// TODO: PRODUCT NOT FOUND PAGE
 const { data: productResponse, pending } = await useMyFetch("/api/products/" + slug.value);
 const productData = productResponse.value as ProductApiResponse;
 const product = ref<ProductDetail>();
@@ -49,86 +51,7 @@ const { data: reviewsResponse } = await useMyFetch('/api/product-reviews/' + pro
 const reviews = ref<Review[]>([])
 const reviewData = reviewsResponse.value as ReviewApiResponse
 reviews.value = reviewData.data
-reviews.value = [...reviews.value, {
-  id: 'dfdfdfdf',
-  text: 'gg bang',
-  created_at: '1699709547403',
-  variant: 'satu',
-  rating: '4',
-  user_name: 'asep'
-},
-{
-  id: 'ghghghgh',
-  text: 'awesome',
-  created_at: '1699709557403',
-  variant: 'dua',
-  rating: '5',
-  user_name: 'budi'
-},
-{
-  id: 'ijklmnop',
-  text: 'great job',
-  created_at: '1699709567403',
-  variant: 'tiga',
-  rating: '3',
-  user_name: 'charlie'
-},
-{
-  id: 'qrstuvwx',
-  text: 'nice work',
-  created_at: '1699709577403',
-  variant: 'empat',
-  rating: '2',
-  user_name: 'david'
-},
-{
-  id: 'yzabcdef',
-  text: 'fantastic',
-  created_at: '1699709587403',
-  variant: 'lima',
-  rating: '1',
-  user_name: 'eva'
-},
-{
-  id: '12345678',
-  text: 'gg bang',
-  created_at: '1699709597403',
-  variant: 'satu',
-  rating: '4',
-  user_name: 'asep'
-},
-{
-  id: 'abcdefgh',
-  text: 'awesome',
-  created_at: '1699709607403',
-  variant: 'dua',
-  rating: '5',
-  user_name: 'budi'
-},
-{
-  id: 'ijklmnop',
-  text: 'great job',
-  created_at: '1699709617403',
-  variant: 'tiga',
-  rating: '3',
-  user_name: 'charlie'
-},
-{
-  id: 'qrstuvwx',
-  text: 'nice work',
-  created_at: '1699709627403',
-  variant: 'empat',
-  rating: '2',
-  user_name: 'david'
-},
-{
-  id: 'yzabcdef',
-  text: 'fantastic',
-  created_at: '1699709637403',
-  variant: 'lima',
-  rating: '1',
-  user_name: 'eva'
-}]
+
 const seletedVariant = ref<string>();
 seletedVariant.value = product.value.variants.find(
   (variant) => variant.is_default === true
@@ -241,6 +164,7 @@ const RATINGS = ['1', '2', '3', '4', '5']
 
 const showFullDesc = ref(false)
 
+// :class="{ 'lg:sticky lg:top-[0%] lg:left-10': isProductInfoInViewport }"
 
 definePageMeta({
   layout: "my-layout",
@@ -249,11 +173,13 @@ definePageMeta({
 <template>
   <Toaster position="top-center" richColors />
   <div class="my-1 mx-1 z-10 sm:mx-2 sm:absolute lg:mx-8">
-    <NuxtLink :to="'/products'"><ArrowLeft /></NuxtLink>
+    <NuxtLink :to="'/products'">
+      <ArrowLeft />
+    </NuxtLink>
   </div>
-  <section v-if="!pending && product" class="sm:flex gap-8 m-5 sm:mx-10 lg:m-10 lg:mx-20 font-rubik relative border-b pb-10">
-    <div class="sm:w-[40%] lg:w-[25%] h-full w-full bg-white"
-      :class="{ 'lg:sticky lg:top-[0%] lg:left-10': isProductInfoInViewport }">
+  <section v-if="!pending && product"
+    class="sm:flex gap-8 m-2 mt-4 lg:w-[65%] xl:w-[70%] sm:mx-10 lg:m-10 lg:mx-20 font-rubik relative border-b lg:pb-10">
+    <div class="sm:w-[40%] lg:w-[25%] h-full w-full bg-white">
       <Carousel :items-to-show="1">
         <Slide v-for="(image, key) in product?.images" :key="key" class="">
           <img :src="image.url" class="rounded-md object-cover aspect-[4/3]" />
@@ -266,14 +192,14 @@ definePageMeta({
     </div>
 
     <!-- product info -->
-    <div class="sm:w-[50%]" ref="productInfo">
+    <div class="sm:w-[70%]" ref="productInfo">
       <h2 class="text-lg font-semibold lg:text-2xl">{{ product?.name }}</h2>
       <div class="flex items-center gap-2 text-sm lg:text-base">
         <p>{{ product.sold }} <span class="font-medium">Sold</span></p>
         <span>•</span>
         <div class="flex gap-3 items-center">
           <StarRating :rating-value="1" :rating-count="1" class="mr-3" rating-size="1.6rem" />
-          <p>{{ (totalRating / reviews.length).toFixed(1) }} ({{ reviews.length }} rating)</p>
+          <p>{{ totalRating ? (totalRating / reviews.length).toFixed(1) : 0 }} ({{ reviews.length }} rating)</p>
         </div>
       </div>
       <div class="my-5">
@@ -294,7 +220,7 @@ definePageMeta({
         </div>
       </div>
       <hr />
-      <p class="my-3 text-sm" :class="{ 'line-clamp-6': !showFullDesc }">
+      <p class="mt-3 text-sm" :class="{ 'line-clamp-6': !showFullDesc }">
         {{ product.description }} Lorem ipsum dolor sit amet, consectetur
         adipiscing elit. Sed id justo a mauris aliquet hendrerit. Nullam aliquet
         ex vel aliquet fermentum. Nam commodo hendrerit sapien, et consequat
@@ -373,25 +299,27 @@ definePageMeta({
         vel sollicitudin dolor finibus. Vivamus gravida, ipsum ut fermentum
         cursus,
       </p>
-      <button type="button" class="text-sm" @click="showFullDesc = !showFullDesc">{{ showFullDesc ? 'See less' : 'See more' }}</button>
+      <button type="button" class="text-sm mb-5" @click="showFullDesc = !showFullDesc">{{ showFullDesc ? 'See less' : 'Seemore'
+      }}</button>
     </div>
     <!-- end of product info -->
 
     <!-- product action (add to cart and select quantity) -->
     <div class="border rounded-lg p-3 w-[20%] flex-col justify-between fixed bg-white right-10 hidden lg:flex">
       <div>
-        <h3 class="font-medium text-lg">Set quantity</h3>
-        <p class="text-base my-2">{{ variant }}</p>
+        <h3 class="font-medium">Set quantity</h3>
+        <p class="text-sm my-2">{{ variant }}</p>
         <div class="flex gap-3 items-center justify-between">
-          <div class="flex gap-2 border rounded-md px-1 py-1 justify-between items-center">
+          <!-- TODO: LIMIT QUANTITY BASE ON EACH VARIANT STOCKS -->
+          <div class="flex gap-2 border rounded-md px-1 py-1 justify-between items-center text-sm">
             <button @click="() => productQuantity--"
-              class="w-6 h-6 flex items-center justify-center hover:bg-slate-100 rounded-md"
+              class="w-6 h-6 flex items-center justify-center hover:bg-slate-100 rounded-md font-semibold"
               :class="{ 'cursor-not-allowed': productQuantity === 1 }" :disabled="productQuantity === 1">
               -
             </button>
-            <input class="w-8 focus:outline-none text-center" v-model="productQuantity" />
+            <input class="w-8 focus:outline-none text-center" :min="1" :max="product.stocks" v-model="productQuantity" />
             <button @click="() => productQuantity++"
-              class="w-6 h-6 flex items-center justify-center hover:bg-slate-100 rounded-md" :class="{
+              class="w-6 h-6 flex items-center justify-center hover:bg-slate-100 rounded-md font-semibold" :class="{
                 'cursor-not-allowed': productQuantity === product.stocks,
               }" :disabled="productQuantity === product.stocks">
               +
@@ -406,7 +334,7 @@ definePageMeta({
       </div>
 
       <div class="mt-12">
-        <Button class="w-full" @click="renderPromiseToast">Add to cart</Button>
+        <Button class="w-full" @click="renderPromiseToast" :disabled="productQuantity < 1">Add to cart</Button>
       </div>
     </div>
     <!-- end of product action -->
@@ -414,15 +342,15 @@ definePageMeta({
 
   <!-- product reviews section -->
   <section>
-    <div v-if="reviews" class="mx-5 lg:mx-20 md:flex gap-10">
-      <!-- user rating -->
-      <div class="w-full max-md:border-b max-md:pb-4 md:w-min">
+    <div v-if="reviews" class="mx-2 lg:w-[65%] lg:mx-20 xl:w-[70%] sm:flex sm:mx-10 gap-10">
+      <!-- user rating stat -->
+      <div class="w-full max-md:border-b max-md:pb-4 sm:w-[40%] md:w-min">
         <h2 class="text-lg whitespace-nowrap font-medium lg:text-xl">Product Reviews</h2>
         <div class="flex items-center gap-5 mt-3">
           <StarRating :rating-value="1" :rating-count="1" class="mr-3" />
           <div class="flex items-end">
             <p class="text-2xl lg:text-6xl">
-              {{ (totalRating / reviews.length).toFixed(1) }}
+              {{ totalRating ? (totalRating / reviews.length).toFixed(1) : 0 }}
             </p>
             <p class="text-slate-500 text-sm lg:text-base">/5</p>
           </div>
@@ -449,24 +377,7 @@ definePageMeta({
       <!-- user reviews -->
       <div class="w-full">
         <template v-for="review in  reviews" :key="review.id">
-          <div class="border-b py-3 text-sm">
-            <div class="flex flex-wrap gap-28 items-center">
-              <StarRating :read-only="true" :rating-value="+review.rating" rating-size="1.5rem" />
-              <p class="text-sm">{{ formatDate(review.created_at) }}</p>
-            </div>
-            <div class="flex gap-3 items-center mt-1">
-              <div class="w-8 h-8 overflow-hidden rounded-full lg:w-10 lg:h-10">
-                <img :src="'https://ui-avatars.com/api/?name=' + review.user_name.replaceAll(' ', ' + ')">
-              </div>
-              <p class="font-medium">
-                {{ review.user_name }}
-              </p>
-            </div>
-            <div class="mt-2 text-sm">
-              <p class="text-slate-500">Variant: {{ review.variant }}</p>
-              <p>{{ review.text }}</p>
-            </div>
-          </div>
+          <ReviewItem :review="review" />
         </template>
       </div>
     </div>

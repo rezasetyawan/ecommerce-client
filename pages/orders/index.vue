@@ -114,19 +114,23 @@ definePageMeta({
               <p>Total</p>
               <p class="font-medium text-xs lg:text-base">{{ toRupiah(order.total) }}</p>
             </div>
+
+            <!-- actions button -->
             <div class="flex justify-end self-end items-end gap-2">
-              <Button variant="link" class="whitespace-nowrap text-xs lg:text-sm" size="sm">
+              <Button variant="link" class="whitespace-nowrap text-xs lg:text-sm" size="xs">
                 <NuxtLink :to="'/order/' + order.id">See detail</NuxtLink>
               </Button>
               <NuxtLink :to="'/pay/' + order.id" v-if="order.status === 'PAYMENT'">
-                <Button class="px-5 lg:px-10 text-xs whitespace-nowrap lg:text-sm" size="sm">
+                <Button class="text-xs whitespace-nowrap lg:text-sm" size="xs">
                   Pay Now
                 </Button>
               </NuxtLink>
               <div v-if="order.status === 'SHIPPING'">
                 <AlertDialog>
                   <AlertDialogTrigger as-child>
-                    <Button variant="outline" class="px-10">RECEIVED </Button>
+                    <Button class="text-xs whitespace-nowrap lg:text-sm" size="xs" variant="outline">
+                      Received
+                    </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
@@ -145,15 +149,15 @@ definePageMeta({
 
               <div v-if="order.status === 'FINISHED' && order.unreviewed_product_counts > 0">
                 <NuxtLink :to="'/review/' + order.id">
-                  <Button class="px-5 lg:px-10 text-xs lg:text-sm" size="sm">
+                  <Button class="text-xs lg:text-sm" size="xs">
                     Review
                   </Button>
                 </NuxtLink>
               </div>
             </div>
+            <!-- end of actions button -->
           </div>
         </div>
-
       </div>
     </template>
   </section>
