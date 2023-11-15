@@ -12,7 +12,6 @@ import { Badge } from "../../../components/ui/badge";
 
 const supabase = useSupabaseClient();
 const userStore = useUserStore();
-const cartStore = useCartStore();
 const addresses = ref<Address[]>();
 
 onMounted(async () => {
@@ -21,27 +20,27 @@ onMounted(async () => {
     userStore.user?.id as string
   );
   addresses.value = addressData;
-  console.log(addresses.value);
 });
 
 definePageMeta({
   layout: "my-layout",
+  middleware: 'auth'
 });
 </script>
 <template>
-  <section class="p-3">
+  <section class="p-3 md:mx-20 lg:mx-40 ">
     <div class="flex justify-end">
-      <Button><NuxtLink :to="'/profile/address/new'">Add address</NuxtLink></Button>
+      <Button><NuxtLink :to="'/profile/address/new'" size="sm" class="text-sm lg:text-sm">Add address</NuxtLink></Button>
     </div>
 
-    <div class="mx-40 mt-10">
+    <div class="mt-5">
       <template v-for="data in addresses">
         <div class="border rounded-lg p-3 space-y-1.5">
-          <p class="text-lg font-semibold">
-            {{ data.name }} <Badge v-if="data.is_default" class="">main</Badge>
+          <p class="text-sm font-semibold lg:text-base">
+            {{ data.name }} <Badge v-if="data.is_default" class="ml-4 text-xs">main</Badge>
           </p>
-          <p>{{ data.phone_number }}</p>
-          <p>
+          <p class="text-sm lg:text-base">{{ data.phone_number }}</p>
+          <p class="text-sm lg:text-base">
             {{ data.full_address }}, {{ data.district }}, {{ data.city }},
             {{ data?.province }}
           </p>

@@ -127,7 +127,8 @@ const checkoutHandler = () => {
 };
 
 definePageMeta({
-  layout: "my-layout",
+    layout: 'my-layout',
+    middleware: 'auth'
 });
 </script>
 <template>

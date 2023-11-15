@@ -47,6 +47,10 @@ const productData = productResponse.value as ProductApiResponse;
 const product = ref<ProductDetail>();
 product.value = productData.data;
 
+if (!productData.data) {
+  useRouter().push('/404')
+}
+
 const { data: reviewsResponse } = await useMyFetch('/api/product-reviews/' + product.value?.id)
 const reviews = ref<Review[]>([])
 const reviewData = reviewsResponse.value as ReviewApiResponse
@@ -81,11 +85,8 @@ const subtotal = computed(() => {
 
 const productInfo = ref<HTMLElement | null>(null);
 const isProductInfoInViewport = useElementVisibility(productInfo);
-console.log(productInfo.value)
-console.log(isProductInfoInViewport.value)
 
-watch(isProductInfoInViewport, () => isProductInfoInViewport.value)
-watch(productInfo, () => productInfo.value)
+watch(isProductInfoInViewport, () => console.log(isProductInfoInViewport.value))
 
 const addItemToCart = async () => {
   try {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { useSupabaseClient } from "../../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
-import { definePageMeta } from "../../../node_modules/nuxt/dist/pages/runtime/composables";
+import { ArrowLeft } from "lucide-vue-next";
+import { nanoid } from "nanoid";
+import { ref } from "vue";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
@@ -14,15 +15,11 @@ import {
   SelectValue,
 } from "../../../components/ui/select";
 import { Textarea } from "../../../components/ui/textarea";
-import { ref } from "vue";
-import { nanoid } from "nanoid";
+import { useSupabaseClient } from "../../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
+import { definePageMeta } from "../../../node_modules/nuxt/dist/pages/runtime/composables";
 import { useUserStore } from "../../../store/user";
-import { ArrowLeft } from "lucide-vue-next";
 
-definePageMeta({
-  layout: "my-layout",
-});
-
+const { $toast } = useNuxtApp();
 const userStore = useUserStore();
 const supabase = useSupabaseClient();
 const router = useRouter();
@@ -30,6 +27,7 @@ const router = useRouter();
 const provinceChoices = ref<{ code: string; name: string }[]>([]);
 const cityChoices = ref<{ code: string; name: string }[]>([]);
 const districtChoices = ref<{ code: string; name: string }[]>([]);
+const isLoading = ref(false)
 
 const address = ref({
   name: "",
@@ -118,8 +116,9 @@ watch(
   { deep: true }
 );
 
-const onSubmitHandler = async () => {
+const addNewAddress = async () => {
   try {
+    isLoading.value = true
     const addressData = {
       id: nanoid(16),
       user_id: userStore.user?.id,
@@ -130,7 +129,7 @@ const onSubmitHandler = async () => {
       phone_number: address.value.phone_number,
       district: address.value.ditrict,
     };
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("addresses")
       .insert(addressData as never);
 
@@ -138,104 +137,101 @@ const onSubmitHandler = async () => {
       throw new Error(error.message);
     }
   } catch (error: any) {
-    console.log(error.message);
+    throw new Error(error.message)
+  } finally {
+    isLoading.value = false
   }
 };
+
+const onSubmitHandler = async () => {
+  return $toast.promise(addNewAddress, {
+    loading: "Loading...",
+    success: (data) => {
+      return `Address added`;
+    },
+    error: (data: any) => (data.message ? `${data.message}` : "Error"),
+  });
+}
 
 onMounted(async () => {
   await getProvinceSuggestion();
 });
+
+definePageMeta({
+  layout: "my-layout",
+  middleware: 'auth'
+});
+
 </script>
 <template>
+  <Toaster position="top-center" richColors />
   <section class="p-3 relative">
-    <button
-      class="absolute px-3 py-2 top-3 left-[20%] border rounded-lg"
-      @click="router.go(-1)"
-    >
+    <button class="absolute px-3 py-2 top-3 left-0 md:left-10 lg:left-80" @click="router.go(-1)">
       <ArrowLeft class="w-6 h-6" />
     </button>
-    <form class="mx-96 mb-40" @submit.prevent="onSubmitHandler">
+    <form class="mx-2 mb-40 md:mx-10 lg:mx-80" @submit.prevent="onSubmitHandler">
+      <h2 class="text-lg font-semibold text-center my-3 lg:text-2xl">Add Address</h2>
       <Label>Name</Label>
       <Input type="text" class="mt-2" v-model="address.name" required />
 
       <Label class="mt-3">Phone Number</Label>
-      <Input
-        type="number"
-        class="mt-2"
-        v-model="address.phone_number"
-        required
-      />
+      <Input type="number" class="mt-2" v-model="address.phone_number" required />
 
       <Label class="mt-3">Full Address</Label>
       <Textarea class="mt-2 textarea" v-model="address.full_address" required />
 
       <Label class="mt-3">Province</Label>
-      <Select
-        v-model="address.province_code"
-        v-if="provinceChoices"
-        @update:modelValue="() => getCities()"
-        required
-      >
+      <Select v-model="address.province_code" v-if="provinceChoices" @update:modelValue="() => getCities()" required>
         <SelectTrigger class="mt-2">
           <SelectValue placeholder="Select province" />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup class="max-h-60">
             <SelectLabel>Provinces</SelectLabel>
-            <template v-for="data in provinceChoices" :key="data.code"
-              ><SelectItem :value="data.code">{{
+            <template v-for="data in provinceChoices" :key="data.code">
+              <SelectItem :value="data.code">{{
                 data.name
-              }}</SelectItem></template
-            >
+              }}</SelectItem>
+            </template>
           </SelectGroup>
         </SelectContent>
       </Select>
 
       <Label class="mt-3">City</Label>
-      <Select
-        v-model="address.city_code"
-        v-if="cityChoices"
-        :disabled="!address.province_code"
-        @update:modelValue="() => getDistricts()"
-        required
-      >
+      <Select v-model="address.city_code" v-if="cityChoices" :disabled="!address.province_code"
+        @update:modelValue="() => getDistricts()" required>
         <SelectTrigger class="mt-2">
           <SelectValue placeholder="Select city" />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup class="max-h-60">
             <SelectLabel>Cities</SelectLabel>
-            <template v-for="data in cityChoices" :key="data.code"
-              ><SelectItem :value="data.code">{{
+            <template v-for="data in cityChoices" :key="data.code">
+              <SelectItem :value="data.code">{{
                 data.name
-              }}</SelectItem></template
-            >
+              }}</SelectItem>
+            </template>
           </SelectGroup>
         </SelectContent>
       </Select>
 
       <Label class="mt-3">District</Label>
-      <Select
-        v-model="address.ditrict"
-        v-if="districtChoices"
-        :disabled="!address.city_code"
-        required
-      >
+      <Select v-model="address.ditrict" v-if="districtChoices" :disabled="!address.city_code" required>
         <SelectTrigger class="mt-2">
           <SelectValue placeholder="Select district" />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup class="max-h-60">
             <SelectLabel>District</SelectLabel>
-            <template v-for="data in districtChoices" :key="data.code"
-              ><SelectItem :value="data.name">{{
+            <template v-for="data in districtChoices" :key="data.code">
+              <SelectItem :value="data.name">{{
                 data.name
-              }}</SelectItem></template
-            >
+              }}</SelectItem>
+            </template>
           </SelectGroup>
         </SelectContent>
       </Select>
-      <Button class="mt-10 w-full" type="submit">Submit</Button>
+      <Button class="mt-10 w-full" type="submit" :disabled="isLoading">Submit</Button>
     </form>
   </section>
 </template>
@@ -260,7 +256,9 @@ input[type="number"] {
 
 /* Hide scrollbar for IE, Edge and Firefox */
 .textarea {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 </style>

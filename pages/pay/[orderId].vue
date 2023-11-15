@@ -10,6 +10,7 @@ import { addImage } from "~/utils/useImage";
 import { updateProductStocks } from "~/utils/useProduct";
 import { ArrowLeft } from "lucide-vue-next";
 
+const { $toast } = useNuxtApp();
 const supabase = useSupabaseClient();
 const config = useRuntimeConfig();
 const route = useRoute();
@@ -25,6 +26,21 @@ const paymentConfirmationInfo = ref({
 });
 const struck = ref<File | null>(null);
 
+const isOrderValid = async (client: SupabaseClient, orderId: string) => {
+  try {
+    const { data, error } = await client.from('orders').select('id').eq('id', orderId)
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (!data.length) return false
+
+    return true
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+};
+
 const getPaymentAmount = async (client: SupabaseClient, orderId: string) => {
   try {
     const { data, error } = await client
@@ -38,8 +54,8 @@ const getPaymentAmount = async (client: SupabaseClient, orderId: string) => {
     }
 
     return data.total;
-  } catch (error) {
-    console.log(error);
+  } catch (error: any) {
+    throw new Error(error.message)
   }
 };
 
@@ -56,8 +72,8 @@ const getOrderStatus = async (client: SupabaseClient, orderId: string) => {
     }
 
     return data.status;
-  } catch (error) {
-    console.log(error);
+  } catch (error: any) {
+    throw new Error(error.message)
   }
 };
 
@@ -86,24 +102,22 @@ const getOrderProductVariantIds = async (
 };
 
 onBeforeMount(async () => {
+  const isOrderExist = await isOrderValid(supabase, orderId.value)
+
+  if (!isOrderExist) {
+    useRouter().push('/404')
+    return
+  }
+
   const amount = await getPaymentAmount(supabase, orderId.value);
   paymentAmount.value = amount;
 
   const status = await getOrderStatus(supabase, orderId.value);
   if (status !== "PAYMENT") {
     useRouter().push("/orders");
+    return
   }
 });
-
-// const handleTransferInput = (event: Event) => {
-//   if (event.target) {
-//     const input = event.target as HTMLInputElement;
-//     // Check if the input value is a number using regex
-//     if (/^\d*$/.test(input.value)) {
-//       paymentConfirmationInfo.value.amount = +input.value;
-//     }
-//   }
-// };
 
 const onFileChangeHandler = (event: Event) => {
   try {
@@ -118,7 +132,7 @@ const getImageUrl = () => {
   }
 };
 
-const onSubmitHandler = async () => {
+const confirmPayment = async () => {
   try {
     if (paymentConfirmationInfo.value.amount !== paymentAmount.value) {
       throw new Error("Please provive correct transfer amount");
@@ -149,7 +163,6 @@ const onSubmitHandler = async () => {
       .eq("id", orderId.value);
 
     const variantIds = await getOrderProductVariantIds(supabase, orderId.value);
-    console.log(variantIds);
     await updateProductStocks(supabase, orderId.value, variantIds);
 
     if (orderError) {
@@ -160,13 +173,11 @@ const onSubmitHandler = async () => {
   }
 };
 
-const { $toast } = useNuxtApp();
-
-const renderPromiseToast = () => {
-  return $toast.promise(onSubmitHandler, {
+const onSubmitHandler = () => {
+  return $toast.promise(confirmPayment, {
     loading: "Loading...",
     success: (data) => {
-      return `Submit success`;
+      return `Success`;
     },
     error: (data: any) => (data.message ? `${data.message}` : "Error"),
   });
@@ -177,13 +188,13 @@ definePageMeta({
 });
 </script>
 <template>
+  <Toaster position="top-center" richColors />
   <div class="my-1 mx-1 z-10 sm:mx-4 md:mx-12 sm:absolute lg:mx-48 xl:mx-64">
     <NuxtLink :to="'/orders'" class="p-3 w-auto block">
       <ArrowLeft />
     </NuxtLink>
   </div>
   <section class="m-5 sm:mx-10 md:mx-16 lg:mx-60 xl:mx-80">
-    <Toaster position="top-center" richColors />
     <h2 class="text-center font-semibold text-xl lg:text-2xl">Product Payment</h2>
     <p class="my-3 text-sm lg:text-base lg:my-5">
       Please make a payment of to
@@ -209,7 +220,7 @@ definePageMeta({
       </div>
     </div>
 
-    <form class="my-10" v-show="showPaymentConfimation" @submit.prevent="renderPromiseToast">
+    <form class="my-10" v-show="showPaymentConfimation" @submit.prevent="onSubmitHandler">
       <Label>Account name</Label>
       <Input type="text" class="mt-2" v-model="paymentConfirmationInfo.name" required />
       <Label class="mt-3 text-sm lg:text-base">Bank name</Label>

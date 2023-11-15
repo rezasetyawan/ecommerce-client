@@ -16,6 +16,10 @@ const { data } = await useMyFetch("/api/orders/" + orderId.value);
 const apiResponse = data.value as ApiResponse;
 order.value = apiResponse.data;
 
+if (!apiResponse.data) {
+  useRouter().push('/404')
+}
+
 const getStatusMessage = (status: string) => {
   let statusMessage: string = "";
 
@@ -46,7 +50,8 @@ const getStatusMessage = (status: string) => {
 };
 
 definePageMeta({
-  layout: "my-layout",
+    layout: 'my-layout',
+    middleware: 'auth'
 });
 </script>
 <template>

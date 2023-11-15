@@ -29,11 +29,16 @@ const { data } = await useMyFetch('/api/review-items', {
 })
 
 const apiResponse = data.value as ApiResponse
+
+if (!apiResponse.data) {
+    useRouter().push('/404')
+}
 reviewItems.value = apiResponse.data
 
 definePageMeta({
-    layout: 'my-layout'
-})
+    layout: "my-layout",
+    middleware: 'auth'
+});
 </script>
 <template>
     <div class="my-1 mx-1 z-10 sm:mx-0 md:mx-2 sm:absolute lg:mx-48 xl:mx-64">

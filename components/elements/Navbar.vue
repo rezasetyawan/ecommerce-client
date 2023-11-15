@@ -6,7 +6,7 @@ import {
   Search,
   ShoppingBag,
   ShoppingCart,
-  ArrowLeft
+  ArrowLeft,
 } from "lucide-vue-next";
 import { ref } from "vue";
 import { cn } from "../../lib/utils";
@@ -21,6 +21,17 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import SheetMenu from './SheetMenu.vue'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
 
 import { useDebounceFn } from "@vueuse/core";
 import { useMyFetch } from "~/composables/useMyFetch";
@@ -35,7 +46,6 @@ const cartStore = useCartStore();
 
 await getUser(supabase);
 
-console.log(userStore.localUser.cart_id ? userStore.localUser.cart_id as string : '')
 await cartStore.getCartItemCounts(supabase, userStore.localUser.cart_id ? userStore.localUser.cart_id as string : '');
 
 const sheetOpen = ref(false);
@@ -64,6 +74,7 @@ const routes = [
 
 const signOutHandler = async () => {
   await signOut(supabase);
+  useRouter().push('/auth/signin')
 };
 
 const searchKey = ref("");
@@ -103,16 +114,14 @@ const hideProductSuggetions = useDebounceFn(() => {
 }, 150);
 
 const onSearchSubmit = () => {
-  console.log("search submit");
   router.push({ name: "products", query: { search: searchKey.value } });
   showProductSuggestions.value = false;
 };
 
 const showMobileSearchSection = ref(false)
-
-watch(showMobileSearchSection, () => console.log(showMobileSearchSection.value))
 </script>
 <template>
+  <!-- SEARCH SECTION FOR SMALL SCREEN -->
   <div
     class="fixed h-14 z-[2000] bg-white w-full top-0 flex items-center border-b shadow-sm -translate-y-full transition-transform md:hidden"
     :class="{ 'translate-y-0': showMobileSearchSection }">
@@ -153,6 +162,7 @@ watch(showMobileSearchSection, () => console.log(showMobileSearchSection.value))
       </div>
     </div>
   </div>
+  <!-- END OF SEARCH SECTION FOR SMALL SCREEN -->
 
   <header
     class="flex items-center p-3 font-rubik border-b max-md:h-14 lg:px-8 w-full justify-between sticky top-0 z-[1000] bg-white">
@@ -188,7 +198,7 @@ watch(showMobileSearchSection, () => console.log(showMobileSearchSection.value))
             }
               " @keyup.enter="onSearchSubmit" @focus="showProductSuggestions = true" @blur="hideProductSuggetions" />
         </form>
-        <div class="absolute bg-white w-80 shadow-sm rounded-lg top-14 p-3 border z-[2000] hidden lg:block"
+        <div class="absolute bg-white w-72 shadow-sm rounded-lg top-14 p-3 border z-[2000] hidden md:block"
           v-show="showProductSuggestions">
           <template v-for="product in productSuggestions" :key="product.slug">
             <NuxtLink :to="'/product/' + product.slug" class="block mt-1">{{ product.name }}</NuxtLink>
@@ -207,6 +217,8 @@ watch(showMobileSearchSection, () => console.log(showMobileSearchSection.value))
           </div>
         </div>
       </div>
+
+      <!-- AUTH BUTTONS -->
       <div v-if="!userStore.user" class="flex gap-2">
         <Button variant="outline">
           <NuxtLink to="/auth/signin">Login</NuxtLink>
@@ -215,11 +227,14 @@ watch(showMobileSearchSection, () => console.log(showMobileSearchSection.value))
           <NuxtLink to="/auth/signup">Register</NuxtLink>
         </Button>
       </div>
+      <!-- END OF AUTH BUTTONS -->
+
       <div v-else class="flex gap-2.5 items-center m-auto lg:gap-5">
         <NuxtLink to="/cart">
           <div class="relative p-2">
             <div
-              class="px-[0.7em] py-[0] top-1 flex items-center justify-center -right-1 text-center bg-red-500 text-[0.6rem] text-white font-medium rounded-full absolute lg:text-[0.7rem]">{{
+              class="px-[0.7em] py-[0] top-1 flex items-center justify-center -right-1 text-center bg-red-500 text-[0.6rem] text-white font-medium rounded-full absolute lg:text-[0.7rem]">
+              {{
                 cartStore.cart ? cartStore.cart.item_counts : 0 }}</div>
             <ShoppingCart class="w-5 h-5 lg:w-6 lg:h-6" />
           </div>
@@ -247,10 +262,25 @@ watch(showMobileSearchSection, () => console.log(showMobileSearchSection.value))
                 <ShoppingBag class="w-5 h-5 mt-1" /> My Orders
               </NuxtLink>
             </DropdownMenuItem>
-            <DropdownMenuItem><button class="flex items-center gap-2" @click="signOutHandler">
-                <LogOut class="w-5 h-5 mt-1" /> Sign Out
-              </button></DropdownMenuItem>
-
+            <AlertDialog>
+              <AlertDialogTrigger class="text-sm font-medium flex items-center gap-2 my-1 mx-2">
+                <LogOut class="w-5 h-5 mt-1" /> Sign out
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure want to sign out?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction @click="signOutHandler">
+                    Continue
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

@@ -95,7 +95,7 @@ watch(showReply, async () => {
                     <p>{{ reply.text }}</p>
                 </div>
             </div>
-            <div else>
+            <div v-else>
                 There's no reply yet
             </div>
         </div>
