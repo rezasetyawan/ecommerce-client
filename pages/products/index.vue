@@ -51,7 +51,6 @@ const getAverageRating = (rating: string[]) => {
 watch(
   [route],
   async () => {
-    console.log("dari watcher");
     await getProducts();
   },
   { immediate: true }
