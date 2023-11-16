@@ -62,12 +62,22 @@ const addProductToCart = async (client: SupabaseClient, productId: string, varia
 
         if (!isItemAlreadyExist) {
             const { error: addItemError } = await client.from('cart_items').insert({ ...data, cart_id: cartId })
-            console.log(addItemError)
+
+            if (addItemError) {
+                throw new Error(addItemError.message)
+            }
         } else {
             const { data: cartItem, error: oldQuantityError } = await client.from('cart_items').select('id, quantity').eq('cart_id', cartId).eq('variant_id', variantId).single()
-            console.log(oldQuantityError)
+
+            if (oldQuantityError) {
+                throw new Error(oldQuantityError.message)
+            }
             const { error: updateItemQuantityError } = await client.from('cart_items').update({ quantity: quantity + cartItem?.quantity }).eq('id', cartItem?.id)
-            console.log(updateItemQuantityError)
+
+            if (updateItemQuantityError) {
+                throw new Error(updateItemQuantityError.message)
+            }
+
         }
     } catch (err: any) {
         throw new Error(err.message)
@@ -77,8 +87,10 @@ const addProductToCart = async (client: SupabaseClient, productId: string, varia
 const getUserCartItemCounts = async (client: SupabaseClient, cartId: string) => {
     try {
         const { data, error } = await client.from('cart_items').select('id').eq('cart_id', cartId)
-        console.log(data)
-        console.log(error)
+
+        if (error) {
+            throw new Error(error.message)
+        }
 
         if (data) {
             return data.length
@@ -88,13 +100,12 @@ const getUserCartItemCounts = async (client: SupabaseClient, cartId: string) => 
     }
 }
 
-
 const getCartItems = async (client: SupabaseClient, cartId: string) => {
     try {
         const { data: cartItems, error: cartItemsError } = await client.from('cart_items').select('id, product_id, variant_id, quantity').eq('cart_id', cartId)
 
         if (cartItemsError) {
-            return console.log(cartItemsError.message)
+            throw new Error(cartItemsError.message)
         }
 
         if (cartItems) {
@@ -126,7 +137,7 @@ const deleteCartItem = async (client: SupabaseClient, cartItemId: string) => {
         const { error } = await client.from('cart_items').delete().eq('id', cartItemId)
 
         if (error) {
-            console.error(error.message)
+            throw new Error(error.message)
         }
     } catch (err: any) {
         throw new Error(err.message)
@@ -138,7 +149,7 @@ const deleteMultipleCartItem = async (client: SupabaseClient, cartItemsId: strin
         const { error } = await client.from('cart_items').delete().in('id', cartItemsId)
 
         if (error) {
-            console.error(error.message)
+            throw new Error(error.message)
         }
     } catch (err: any) {
         throw new Error(err.message)

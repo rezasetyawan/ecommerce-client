@@ -12,12 +12,12 @@ interface ApiResponse {
 }
 
 const supabase = useSupabaseClient();
+const {data: {user}} = await supabase.auth.getUser()
+console.log(user)
 const { getUser } = useUserStore()
 const { data } = await useMyFetch("/api/featured-products");
 const productData = data.value as ApiResponse;
 const products = ref<Product[]>();
-console.log(data.value)
-console.log(productData)
 products.value = productData.data;
 
 const billboards = ref([

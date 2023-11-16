@@ -40,11 +40,10 @@ import { useUserStore } from "~/store/user";
 
 const supabase = useSupabaseClient()
 const router = useRouter();
-const { getUser, signOut } = useUserStore();
 const userStore = useUserStore();
 const cartStore = useCartStore();
 
-await getUser(supabase);
+await userStore.getUser(supabase);
 
 await cartStore.getCartItemCounts(supabase, userStore.localUser.cart_id ? userStore.localUser.cart_id as string : '');
 
@@ -73,7 +72,7 @@ const routes = [
 ];
 
 const signOutHandler = async () => {
-  await signOut(supabase);
+  await userStore.signOut(supabase);
   useRouter().push('/auth/signin')
 };
 
@@ -119,6 +118,21 @@ const onSearchSubmit = () => {
 };
 
 const showMobileSearchSection = ref(false)
+
+const isUserExist = computed(() => {
+  if (userStore.user === null) {
+    return false
+  }
+
+  const isUserEmptyObject = JSON.stringify(userStore.user) === JSON.stringify({})
+  
+  if (isUserEmptyObject) {
+    return false
+  }
+
+  return true
+})
+
 </script>
 <template>
   <!-- SEARCH SECTION FOR SMALL SCREEN -->
@@ -219,7 +233,7 @@ const showMobileSearchSection = ref(false)
       </div>
 
       <!-- AUTH BUTTONS -->
-      <div v-if="!userStore.user" class="flex gap-2">
+      <div v-if="!isUserExist" class="flex gap-2">
         <Button variant="outline">
           <NuxtLink to="/auth/signin">Login</NuxtLink>
         </Button>

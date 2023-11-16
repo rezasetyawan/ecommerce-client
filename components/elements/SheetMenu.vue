@@ -17,7 +17,7 @@ import {
 import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 import { useUserStore } from "~/store/user";
 
-const { signOut } = useUserStore();
+const userStore = useUserStore();
 const supabase = useSupabaseClient()
 
 interface SheetMenuProps {
@@ -30,7 +30,7 @@ interface SheetMenuProps {
 }
 
 const signOutHandler = async () => {
-    await signOut(supabase);
+    await userStore.signOut(supabase);
     useRouter().push('/auth/signin')
 };
 

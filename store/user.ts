@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { SupabaseClient } from '@supabase/supabase-js';
 import { useStorage } from '@vueuse/core'
 import { getCartId } from '~/utils/useCart';
@@ -66,13 +66,26 @@ interface User {
 }
 
 export const useUserStore = defineStore('auth', () => {
-    const user = ref<User | null>()
-    const localUser = useStorage<User>('user', {} as User, localStorage, {mergeDefaults: true})
+    const user = ref<User | null>(null)
+    const localUser = useStorage<User>('user', {} as User, localStorage, { mergeDefaults: true })
+
+    const isUserExist = computed(() => {
+        if (user === null) {
+            return false
+        }
+
+        const isUserEmptyObject = JSON.stringify(user.value) === JSON.stringify({})
+
+        if (isUserEmptyObject) {
+            return false
+        }
+
+        return true
+    })
 
     const getUser = async (supabase: SupabaseClient) => {
         try {
-            if (!localUser.value) {
-                console.log('dari dalem if')
+            if (!isUserExist.value) {
                 const { data: { user: supabaseUser } } = await supabase.auth.getUser()
                 const cartId = await getCartId(supabase, supabaseUser?.id as string)
                 const userData = supabaseUser ? { ...supabaseUser, cart_id: cartId } : null
@@ -81,18 +94,23 @@ export const useUserStore = defineStore('auth', () => {
             } else {
                 user.value = localUser.value
             }
-        } catch (error) {
-            console.log(error)
+        } catch (error: any) {
+            throw new Error(error.message)
         }
     }
 
     const signOut = async (supabase: SupabaseClient) => {
         try {
             const { error } = await supabase.auth.signOut()
-            user.value = null
-            localUser.value = null
-        } catch (error) {
-            console.log(error)
+
+            if (error) {
+                throw new Error(error.message)
+            }
+            user.value = {} as User
+            localUser.value = {} as User
+            return
+        } catch (error: any) {
+            throw new Error(error.message)
         }
     }
     return { user, getUser, localUser, signOut }

@@ -26,7 +26,7 @@ const signInUser = async () => {
     if (error) {
       return console.log(error.message);
     }
-    router.push("/");
+    return router.push("/");
   } catch (err: any) {
     throw new Error(err.message)
   } finally {
@@ -51,7 +51,7 @@ const onSubmitHandler = async () => {
   return $toast.promise(signInUser, {
     loading: "Loading...",
     success: (data) => {
-      return `Sign in success`;
+      return `Signin success`;
     },
     error: (data: any) => (data.message ? `${data.message}` : "Failed to signin"),
   });
@@ -61,12 +61,14 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   if (event === "SIGNED_IN") {
     if (session) {
       const user = session.user;
-      const userData = {
-        id: user.id,
-        name: user.user_metadata.full_name,
-        email: user.email,
-      };
-      await supabase.from("users").insert(userData as never);
+      if (user.app_metadata.provider !== 'email') {
+        const userData = {
+          id: user.id,
+          name: user.user_metadata.full_name,
+          email: user.email,
+        };
+        await supabase.from("users").upsert(userData as never);
+      }
     }
   }
 });

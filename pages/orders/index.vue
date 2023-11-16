@@ -25,6 +25,7 @@ interface ApiResponse {
   };
 }
 
+const { $toast } = useNuxtApp();
 const userStore = useUserStore();
 const supabase = useSupabaseClient();
 
@@ -69,19 +70,43 @@ const getStatusMessage = (status: string) => {
   return statusMessage;
 };
 
+const getOrderItemIndex = (orderId: string) => {
+  const index = orders.value.findIndex((order) => order.id === orderId);
+  return index;
+};
+
 const receiveProductHandler = async (orderId: string) => {
   try {
     await updateOrderStatus(supabase, orderId, "FINISHED");
     await updateProductSoldCounts(supabase, orderId);
-  } catch (err: any) { }
+    const index = getOrderItemIndex(orderId);
+    index !== -1 ? (orders.value[index].status = "FINISHED") : null;
+
+    return $toast.success('Order received')
+  } catch (error: any) {
+    return $toast.error(error.message ? error.message : 'Failed to receive order')
+  }
 };
 
+const cancelOrderHandler = async (orderId: string) => {
+  try {
+    await updateOrderStatus(supabase, orderId, "CANCELLED")
+    const index = getOrderItemIndex(orderId);
+
+    index !== -1 ? (orders.value[index].status = "CANCELLED") : null;
+    return $toast.success('Order cancelled successfully')
+  } catch (error: any) {
+    return $toast.error(error.message ? error.message : 'Failed to cancel order')
+  }
+}
+
 definePageMeta({
-    layout: 'my-layout',
-    middleware: 'auth'
+  layout: 'my-layout',
+  middleware: 'auth'
 });
 </script>
 <template>
+  <Toaster position="top-center" richColors />
   <section class="m-5 lg:mx-20 lg:my-10 space-y-2">
     <template v-for="order in orders" :key="order.id">
       <div class="p-3 rounded-lg shadow-md">
@@ -121,11 +146,59 @@ definePageMeta({
               <Button variant="link" class="whitespace-nowrap text-xs lg:text-sm" size="xs">
                 <NuxtLink :to="'/order/' + order.id">See detail</NuxtLink>
               </Button>
-              <NuxtLink :to="'/pay/' + order.id" v-if="order.status === 'PAYMENT'">
-                <Button class="text-xs whitespace-nowrap lg:text-sm" size="xs">
-                  Pay Now
-                </Button>
-              </NuxtLink>
+
+              <!-- cancel button -->
+              <AlertDialog v-if="order.status === 'PENDING'">
+                <AlertDialogTrigger as-child>
+                  <Button class="text-xs whitespace-nowrap lg:text-sm" size="xs" variant="destructive">
+                    Cancel
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will cancel the order
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction @click="cancelOrderHandler(order.id)">Continue</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <!-- end of cancel button -->
+
+              <!-- render cancel and pay button -->
+              <div v-if="order.status === 'PAYMENT'" class="flex gap-2">
+                <AlertDialog>
+                  <AlertDialogTrigger as-child>
+                    <Button class="text-xs whitespace-nowrap lg:text-sm" size="xs" variant="destructive">
+                      Cancel
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will cancel the order
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction @click="cancelOrderHandler(order.id)">Continue</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                <NuxtLink :to="'/pay/' + order.id">
+                  <Button class="text-xs whitespace-nowrap lg:text-sm" size="xs">
+                    Pay Now
+                  </Button>
+                </NuxtLink>
+              </div>
+              <!-- end of cancel and pay button -->
+
+              <!-- received button -->
               <div v-if="order.status === 'SHIPPING'">
                 <AlertDialog>
                   <AlertDialogTrigger as-child>
@@ -147,7 +220,9 @@ definePageMeta({
                   </AlertDialogContent>
                 </AlertDialog>
               </div>
+              <!-- end received button -->
 
+              <!-- review button -->
               <div v-if="order.status === 'FINISHED' && order.unreviewed_product_counts > 0">
                 <NuxtLink :to="'/review/' + order.id">
                   <Button class="text-xs lg:text-sm" size="xs">
@@ -155,6 +230,7 @@ definePageMeta({
                   </Button>
                 </NuxtLink>
               </div>
+              <!-- review button -->
             </div>
             <!-- end of actions button -->
           </div>
