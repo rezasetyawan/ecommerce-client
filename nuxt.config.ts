@@ -25,5 +25,10 @@ export default defineNuxtConfig({
   },
   build: {
     transpile: ['vue-sonner']
+  },
+  routeRules: {
+    '/api/**': {
+      proxy: { to: process.env.API_BASE_URL as string + "/api/**" },
+    }
   }
 })

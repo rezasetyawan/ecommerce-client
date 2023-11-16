@@ -5,7 +5,6 @@ export const useMyFetch = (endpoint: string, options = {}) => {
         baseURL: config.public.API_BASE_URL,
     };
     return useFetch(endpoint, {
-        mode: 'no-cors',
         ...newOptions
     });
 };
