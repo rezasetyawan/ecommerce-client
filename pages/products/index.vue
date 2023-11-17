@@ -15,19 +15,31 @@ const searchKey = ref(route.query.search as string);
 const products = ref<Product[]>();
 const isLoading = ref(true)
 const { $toast } = useNuxtApp()
+const cacheKey = ref("/products")
+
+// watch(cacheKey, () => {
+//   console.log(cacheKey.value)
+//   const { data: productsCache } = useNuxtData(cacheKey.value)
+//   products.value = productsCache.value?.data
+// })
 
 const getProducts = async () => {
   try {
+    console.log(cacheKey.value)
     isLoading.value = true
-    const { data, error } = await useMyFetch("/api/products", {
-      method: "GET",
-      query: {
-        search: searchKey.value
-      },
-    });
+    // if (!products.value) {
+      const { data, error } = await useMyFetch("/api/products", {
+        method: "GET",
+        query: {
+          search: searchKey.value
+        },
+        key: cacheKey.value
+      });
 
-    const productData = data.value as ApiResponse;
-    products.value = productData.data;
+      const productData = data.value as ApiResponse;
+      products.value = productData.data;
+      return products.value
+    // }
   } catch (error: any) {
     return $toast.error(error.message ? `${error.message}` : "Failed to fetch product")
   } finally {
@@ -36,11 +48,23 @@ const getProducts = async () => {
 };
 
 onMounted(async () => {
-  await getProducts();
+  console.log(cacheKey.value)
+  const products = await getProducts();
+  if (!products) {
+    await getProducts()
+  }
 });
 
 onBeforeRouteUpdate(async (to, from) => {
+  if (to.fullPath === '/products?search=') {
+    cacheKey.value = '/products'
+    await getProducts();
+    return
+  }
+
   searchKey.value = to.query.search as string
+  cacheKey.value = to.fullPath
+  console.log(cacheKey.value)
   await getProducts();
 });
 
@@ -59,6 +83,9 @@ watch(
   },
   { immediate: true }
 );
+
+
+
 definePageMeta({
   layout: "my-layout",
 });

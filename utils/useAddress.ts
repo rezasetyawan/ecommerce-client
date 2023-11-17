@@ -71,4 +71,23 @@ const deleteAddress = async (client: SupabaseClient, addressId: string) => {
 }
 
 
-export { getUserMainAddress, getUserAddresses, getAddress, updateAddress, deleteAddress }
+const isUserHaveDefaultAddress = async (client: SupabaseClient, userId: string) => {
+    try {
+        const { data, error } = await client
+            .from("addresses").select('id').eq('is_default', true).eq('user_id', userId)
+
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        if (!data.length) return false
+
+        return true
+
+    } catch (error: any) {
+        throw new Error(error.message)
+    }
+}
+
+
+export { getUserMainAddress, getUserAddresses, getAddress, updateAddress, deleteAddress, isUserHaveDefaultAddress }

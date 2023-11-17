@@ -1,24 +1,24 @@
 <script setup lang="ts">
+import { Trash2 } from "lucide-vue-next";
 import { ref } from "vue";
+import {
+AlertDialog,
+AlertDialogAction,
+AlertDialogCancel,
+AlertDialogContent,
+AlertDialogDescription,
+AlertDialogFooter,
+AlertDialogHeader,
+AlertDialogTitle,
+AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 import { useUserStore } from "~/store/user";
 import { Address } from "~/types";
-import { getUserAddresses, deleteAddress } from "~/utils/useAddress";
+import { deleteAddress, getUserAddresses } from "~/utils/useAddress";
 import { useSupabaseClient } from "../../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 import { definePageMeta } from "../../../node_modules/nuxt/dist/pages/runtime/composables";
-import { Trash2 } from "lucide-vue-next";
-import { Badge } from "../../../components/ui/badge";
-import { Button } from "../../../components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "~/components/ui/alert-dialog";
 
 const { $toast } = useNuxtApp();
 const supabase = useSupabaseClient();
@@ -33,6 +33,8 @@ onMounted(async () => {
   addresses.value = addressData;
 });
 
+
+// delete address in database and locally (memory)
 const deleteAddressHandler = async (addressId: string) => {
   try {
     await deleteAddress(supabase, addressId)
@@ -47,6 +49,7 @@ const deleteAddressHandler = async (addressId: string) => {
   }
 }
 
+// setting user default address in databse and locally (memory)
 const setAddressAsDefault = async (addressId: string) => {
   try {
     if (!addresses.value) return
@@ -69,19 +72,18 @@ const setAddressAsDefault = async (addressId: string) => {
 }
 
 const compareByDefault = (a: Address, b: Address) => {
-      if (a.is_default && !b.is_default) {
-        return -1;
-      } else if (!a.is_default && b.is_default) {
-        return 1;
-      } else {
-        return 0;
-      }
-    };
+  if (a.is_default && !b.is_default) {
+    return -1;
+  } else if (!a.is_default && b.is_default) {
+    return 1;
+  } else {
+    return 0;
+  }
+};
 
-    // Computed property
-    const sortedArray = computed(() => {
-      return addresses.value?.slice().sort(compareByDefault);
-    });
+const sortedAddress = computed(() => {
+  return addresses.value?.sort(compareByDefault);
+});
 
 definePageMeta({
   layout: "my-layout",
@@ -98,7 +100,7 @@ definePageMeta({
     </div>
 
     <div class="mt-5 space-y-2 transition-all duration-700">
-      <template v-for="data in sortedArray">
+      <template v-for="data in sortedAddress">
         <div class="border rounded-lg p-3 space-y-1.5 relative">
           <AlertDialog>
             <AlertDialogTrigger as-child>

@@ -13,13 +13,12 @@ interface ApiResponse {
 }
 
 const supabase = useSupabaseClient();
-const {data: {user}} = await supabase.auth.getUser()
+const { data: { user } } = await supabase.auth.getUser()
 console.log(user)
 const { getUser } = useUserStore()
-const { data } = await useMyFetch("/api/featured-products");
-const productData = data.value as ApiResponse;
 const products = ref<Product[]>();
-products.value = productData.data;
+const { data: featuredProductsCache } = useNuxtData('featured-products')
+products.value = featuredProductsCache.value?.data
 
 const billboards = ref([
   {
@@ -58,9 +57,32 @@ const getAverageRating = (rating: string[]) => {
   }, 0) / rating.length).toFixed(1)
 }
 
+
+const getFeaturedProducts = async () => {
+  try {
+    if (!products.value) {
+      const { data } = await useMyFetch("/api/featured-products", {
+        key: 'featured-products'
+      });
+      const productData = data.value as ApiResponse;
+      products.value = productData.data;
+      return products.value
+    }
+  } catch (error) {
+
+  }
+}
+
+onMounted(async () => {
+  const featuredProducts = await getFeaturedProducts()
+  if (!featuredProducts) {
+    await getFeaturedProducts()
+  }
+})
 definePageMeta({
   layout: "my-layout",
 });
+
 </script>
 <template>
   <div class="mx-auto">
