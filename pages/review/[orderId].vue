@@ -48,7 +48,7 @@ definePageMeta({
     </div>
     <section class="m-5 sm:mx-10 md:mx-16 lg:mx-60 xl:mx-80">
         <div v-for="item in reviewItems" :key="item.id">
-            <AddReview :item="item" />
+            <AddReview :item="item" :orderId="orderId" />
         </div>
 
         <h2 v-if="!reviewItems.length">EMPTY, YOUR ALREADY REVIEWED THE PRODUCTS</h2>
