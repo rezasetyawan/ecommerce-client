@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useMyFetch } from '~/composables/useMyFetch';
 import { useSupabaseClient } from '../../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient';
 import { useUserStore } from '../../../store/user';
 import { addReview } from '../../../utils/useReview';
@@ -13,7 +14,8 @@ interface ReviewItem {
     variant: string
 }
 interface Props {
-    item: ReviewItem
+    item: ReviewItem,
+    orderId: string
 }
 const props = defineProps<Props>()
 
@@ -45,9 +47,9 @@ const reviewData = ref({
 const addNewReview = async () => {
     try {
         const review: AddReview = { ...reviewData.value, created_at: Date.now().toString(), rating: reviewData.value.rating.toString() }
-        await addReview(supabase, review)
-
+        const id = await addReview(supabase, review)
         showComponent.value = false
+        return id
     } catch (error: any) {
         throw new Error(error.message)
     }
@@ -57,13 +59,11 @@ const onSubmitHandler = async () => {
     return $toast.promise(addNewReview, {
         loading: "Loading...",
         success: (data) => {
-            return `Review added, thank you :D ${props.item.product_name}`;
+            return `Review added, thank you :D`;
         },
         error: (data: any) => (data.message ? `${data.message}` : "Error"),
     });
 }
-
-console.log(props.item)
 </script>
 <template>
     <Toaster position="top-center" richColors />

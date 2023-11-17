@@ -18,6 +18,7 @@ const route = useRoute();
 const orderId = ref(route.params.orderId as string);
 const paymentAmount = ref(0);
 const showPaymentConfimation = ref(false);
+const isOrderExist = ref(false)
 
 const paymentConfirmationInfo = ref({
   name: "",
@@ -102,11 +103,15 @@ const getOrderProductVariantIds = async (
 };
 
 onBeforeMount(async () => {
-  const isOrderExist = await isOrderValid(supabase, orderId.value)
+  isOrderExist.value = await isOrderValid(supabase, orderId.value)
 
-  if (!isOrderExist) {
-    useRouter().push('/404')
-    return
+  if (!isOrderExist.value) {
+    throw createError({
+      statusCode: 404,
+      data: "Sorry we couldn't find payment for your order ",
+      statusMessage: 'Payment Not Found',
+      fatal: true
+    })
   }
 
   const amount = await getPaymentAmount(supabase, orderId.value);
@@ -185,6 +190,7 @@ const onSubmitHandler = () => {
 
 definePageMeta({
   layout: "my-layout",
+  middleware: 'auth'
 });
 </script>
 <template>
@@ -194,7 +200,7 @@ definePageMeta({
       <ArrowLeft />
     </NuxtLink>
   </div>
-  <section class="m-5 sm:mx-10 md:mx-16 lg:mx-60 xl:mx-80">
+  <section class="m-5 sm:mx-10 md:mx-16 lg:mx-60 xl:mx-80" v-show="isOrderExist">
     <h2 class="text-center font-semibold text-xl lg:text-2xl">Product Payment</h2>
     <p class="my-3 text-sm lg:text-base lg:my-5">
       Please make a payment of to

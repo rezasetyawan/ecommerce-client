@@ -1,7 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Address } from '~/types';
+import { Address, UpdateAddress } from '~/types';
 
-const getUserAddress = async (client: SupabaseClient, userId: string) => {
+const getUserAddresses = async (client: SupabaseClient, userId: string) => {
     try {
         const { data, error } = await client.from('addresses').select('id, name, full_address, phone_number, district, city, province, is_default').eq('user_id', userId)
 
@@ -29,5 +29,46 @@ const getUserMainAddress = async (client: SupabaseClient, userId: string) => {
     }
 }
 
+const getAddress = async (client: SupabaseClient, addressId: string) => {
+    try {
+        const { data, error } = await client.from('addresses').select('id, name, full_address, phone_number, district, city, province').eq('id', addressId)
 
-export { getUserMainAddress, getUserAddress }
+        if (error) {
+            throw new Error(error.message)
+        }
+
+        return data[0] as Address
+    } catch (err: any) {
+        throw new Error(err.message)
+    }
+}
+
+const updateAddress = async (client: SupabaseClient, addressId: string, updateData: UpdateAddress) => {
+    try {
+        const { data, error } = await client.from('addresses').update(updateData).eq('id', addressId)
+        if (error) {
+            throw new Error(error.message)
+        }
+
+        return data
+    } catch (err: any) {
+        throw new Error(err.message)
+    }
+}
+
+const deleteAddress = async (client: SupabaseClient, addressId: string) => {
+    try {
+        const { data, error } = await client.from('addresses').delete().eq('id', addressId)
+
+        if (error) {
+            throw new Error(error.message)
+        }
+
+        return
+    } catch (err: any) {
+        throw new Error(err.message)
+    }
+}
+
+
+export { getUserMainAddress, getUserAddresses, getAddress, updateAddress, deleteAddress }

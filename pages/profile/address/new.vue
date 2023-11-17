@@ -116,9 +116,29 @@ watch(
   { deep: true }
 );
 
+const isUserHaveDefaultAddress = async () => {
+  try {
+    const { data, error } = await supabase
+      .from("addresses").select('id').eq('is_default', true).eq('user_id', userStore.user?.id as string)
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (!data.length) return false
+
+    return true
+
+  } catch (error: any) {
+    throw new Error(error.message)
+  }
+}
+
 const addNewAddress = async () => {
   try {
     isLoading.value = true
+
+    const isSetAsDefaultAddress = await isUserHaveDefaultAddress()
     const addressData = {
       id: nanoid(16),
       user_id: userStore.user?.id,
@@ -128,6 +148,7 @@ const addNewAddress = async () => {
       city: address.value.city_name,
       phone_number: address.value.phone_number,
       district: address.value.ditrict,
+      is_default: !isSetAsDefaultAddress
     };
     const { error } = await supabase
       .from("addresses")

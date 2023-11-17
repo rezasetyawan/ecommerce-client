@@ -46,6 +46,17 @@ interface Address {
     is_default: boolean
 }
 
+interface UpdateAddress {
+    user_id: string
+    name: string
+    full_address: string
+    province: string
+    city: string
+    phone_number: string
+    district: string
+    is_default: boolean
+}
+
 interface OrderData {
     user_id: string;
     total: number;
@@ -121,4 +132,4 @@ interface OrderDetail {
     subtotal: number
 }
 
-export type { Address, CartItem, Order, OrderData, OrderDetail, OrderItem, PaymentData, Product, ProductDetail, ShipmentData }
+export type { Address, CartItem, Order, OrderData, OrderDetail, OrderItem, PaymentData, Product, ProductDetail, ShipmentData, UpdateAddress }
