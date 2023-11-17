@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// TODO: REFACTOR ALL CODE IN THIS FILE
 import { ArrowLeft } from "lucide-vue-next";
 import { ref } from "vue";
 import { Address } from "~/types";
@@ -33,16 +34,7 @@ const cityChoices = ref<{ code: string; name: string }[]>([]);
 const districtChoices = ref<{ code: string; name: string }[]>([]);
 const isLoading = ref(false)
 
-const addressInitialValue = ref<Address>({
-    id: '',
-    name: '',
-    province: '',
-    city: '',
-    district: '',
-    phone_number: '',
-    full_address: '',
-    is_default: false
-})
+const addressInitialValue = ref<Address>()
 
 const address = ref({
     name: "",
@@ -133,13 +125,13 @@ watch(
 
         if (address.value.province_code && cityChoices.value.length && !address.value.city_code) {
             address.value.city_code = cityChoices.value.filter(item => {
-                return item.name.toLowerCase() === addressInitialValue.value.city.toLowerCase()
+                return item.name.toLowerCase() === addressInitialValue.value?.city.toLowerCase()
             })[0].code
         }
 
         if (address.value.city_code && districtChoices.value.length && !address.value.ditrict) {
             address.value.ditrict = districtChoices.value.filter(item => {
-                return item.name.toLowerCase() === addressInitialValue.value.district.toLowerCase()
+                return item.name.toLowerCase() === addressInitialValue.value?.district.toLowerCase()
             })[0].name
         }
     },
@@ -147,9 +139,9 @@ watch(
 );
 
 watch(addressInitialValue, () => {
-    if (addressInitialValue.value.province && provinceChoices.value.length) {
+    if (addressInitialValue.value?.province && provinceChoices.value.length) {
         address.value.province_code = provinceChoices.value.filter(item => {
-            return item.name.toLowerCase() === addressInitialValue.value.province.toLowerCase()
+            return item.name.toLowerCase() === addressInitialValue.value?.province.toLowerCase()
         })[0].code
     }
 },
@@ -168,12 +160,12 @@ const updateAddressData = async () => {
             city: address.value.city_name,
             phone_number: address.value.phone_number,
             district: address.value.ditrict,
-            is_default: addressInitialValue.value.is_default
+            is_default: addressInitialValue.value?.is_default as boolean
         };
 
         await updateAddress(supabase, addressId.value, addressData)
 
-      
+
     } catch (error: any) {
         throw new Error(error.message)
     } finally {
@@ -194,6 +186,15 @@ const onSubmitHandler = async () => {
 onMounted(async () => {
     await getProvinceSuggestion();
     addressInitialValue.value = await getAddress(supabase, addressId.value)
+
+    if (!addressInitialValue.value) {
+        throw createError({
+            statusCode: 404,
+            data: "Sorry we couldn't find for your address ",
+            statusMessage: 'Address Not Found',
+            fatal: true
+        })
+    }
     address.value = {
         name: addressInitialValue.value.name,
         province_code: "",
@@ -215,7 +216,7 @@ definePageMeta({
 </script>
 <template>
     <Toaster position="top-center" richColors />
-    <section class="p-3 relative">
+    <section class="p-3 relative" v-show="addressInitialValue">
         <button class="absolute px-3 py-2 top-3 left-0 md:left-10 lg:left-80" @click="router.go(-1)">
             <ArrowLeft class="w-6 h-6" />
         </button>

@@ -31,7 +31,12 @@ const { data } = await useMyFetch('/api/review-items', {
 const apiResponse = data.value as ApiResponse
 
 if (!apiResponse.data) {
-    useRouter().push('/404')
+    throw createError({
+        statusCode: 404,
+        message: 'Order Not Found',
+        statusMessage: "Sorry we couldn't find order item for your order",
+        fatal: true
+    })
 }
 reviewItems.value = apiResponse.data
 
@@ -51,6 +56,6 @@ definePageMeta({
             <AddReview :item="item" :orderId="orderId" />
         </div>
 
-        <h2 v-if="!reviewItems.length">EMPTY, YOUR ALREADY REVIEWED THE PRODUCTS</h2>
+        <h2 v-if="!reviewItems.length" class="font-semibold p-4">Empty, you already reviewed the products</h2>
     </section>
 </template>

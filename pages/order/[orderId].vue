@@ -17,7 +17,12 @@ const apiResponse = data.value as ApiResponse;
 order.value = apiResponse.data;
 
 if (!apiResponse.data) {
-  useRouter().push('/404')
+  throw createError({
+    statusCode: 404,
+    data: "Sorry we couldn't find your order",
+    statusMessage: 'Order Not Found',
+    fatal: true
+  })
 }
 
 const getStatusMessage = (status: string) => {
@@ -50,8 +55,8 @@ const getStatusMessage = (status: string) => {
 };
 
 definePageMeta({
-    layout: 'my-layout',
-    middleware: 'auth'
+  layout: 'my-layout',
+  middleware: 'auth'
 });
 </script>
 <template>

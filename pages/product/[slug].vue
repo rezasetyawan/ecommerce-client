@@ -48,7 +48,12 @@ const product = ref<ProductDetail>();
 product.value = productData.data;
 
 if (!productData.data) {
-  useRouter().push('/404')
+  throw createError({
+    statusCode: 404,
+    statusMessage: 'Product Not Found',
+    data: "Sorry, we couldn't find your desired product",
+    fatal: true
+  })
 }
 
 const { data: reviewsResponse } = await useMyFetch('/api/product-reviews/' + product.value?.id)
@@ -300,7 +305,8 @@ definePageMeta({
         vel sollicitudin dolor finibus. Vivamus gravida, ipsum ut fermentum
         cursus,
       </p>
-      <button type="button" class="text-sm mb-5" @click="showFullDesc = !showFullDesc">{{ showFullDesc ? 'See less' : 'Seemore'
+      <button type="button" class="text-sm mb-5" @click="showFullDesc = !showFullDesc">{{ showFullDesc ? 'See less' :
+        'Seemore'
       }}</button>
     </div>
     <!-- end of product info -->
