@@ -144,7 +144,6 @@ definePageMeta({
               " @update:checked="(ischecked: boolean) => selectAllItemHandler(ischecked)" />
             <p>Select all</p>
           </div>
-          <!-- TODO ADD ALERT DIALOG -->
           <AlertDialog>
             <AlertDialogTrigger as-child>
               <Button v-show="selectedItemsId.length" class="px-10" size="sm">Delete </Button>

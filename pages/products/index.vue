@@ -4,18 +4,21 @@ import { useMyFetch } from "../../composables/useMyFetch";
 import { Product } from "../../types/index";
 import { toRupiah } from "../../utils";
 import StarRating from "~/components/elements/StarRating.vue";
+import ProductItemSkeleton from "~/components/elements/product/ProductItemSkeleton.vue"
 
 interface ApiResponse {
   data: Product[];
 }
 
 const route = useRoute();
-
 const searchKey = ref(route.query.search as string);
 const products = ref<Product[]>();
+const isLoading = ref(true)
+const { $toast } = useNuxtApp()
 
 const getProducts = async () => {
   try {
+    isLoading.value = true
     const { data, error } = await useMyFetch("/api/products", {
       method: "GET",
       query: {
@@ -25,8 +28,10 @@ const getProducts = async () => {
 
     const productData = data.value as ApiResponse;
     products.value = productData.data;
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    return $toast.error(error.message ? `${error.message}` : "Failed to fetch product")
+  } finally {
+    isLoading.value = false
   }
 };
 
@@ -35,7 +40,6 @@ onMounted(async () => {
 });
 
 onBeforeRouteUpdate(async (to, from) => {
-  console.log("dari on before");
   searchKey.value = to.query.search as string
   await getProducts();
 });
@@ -51,7 +55,6 @@ const getAverageRating = (rating: string[]) => {
 watch(
   [route],
   async () => {
-    console.log("dari watcher");
     await getProducts();
   },
   { immediate: true }
@@ -61,9 +64,10 @@ definePageMeta({
 });
 </script>
 <template>
-  <div class="px-4 sm:px-6 lg:px-8 my-4" v-if="products">
+  <div class="px-4 sm:px-6 lg:px-8 my-4">
     <div class="space-y-4">
-      <div class="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6">
+      <div class="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6"
+        v-if="!isLoading">
         <template v-for="product in products">
           <NuxtLink class="bg-white group cursor-pointer rounded-xl border p-1 space-y-2 lg:text-p-3"
             :to="'/product/' + product.slug">
@@ -88,6 +92,9 @@ definePageMeta({
             </div>
           </NuxtLink>
         </template>
+      </div>
+      <div class="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6" v-else>
+        <ProductItemSkeleton />
       </div>
     </div>
   </div>

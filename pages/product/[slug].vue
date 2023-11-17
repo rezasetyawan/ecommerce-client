@@ -1,20 +1,22 @@
 <script setup lang="ts">
 import { useElementVisibility } from "@vueuse/core";
+import { ArrowLeft } from "lucide-vue-next";
 import { ref } from "vue";
 import { useRoute } from "vue-router";
 import { Carousel, Pagination, Slide } from "vue3-carousel";
 import "vue3-carousel/dist/carousel.css";
 import StarRating from "~/components/elements/StarRating.vue";
+import ProductDetailSkeleton from '~/components/elements/product/ProductDetailSkeleton.vue';
+import ReviewItem from "~/components/elements/review/ReviewItem.vue";
 import { useCartStore } from "~/store/cart";
 import { useUserStore } from "~/store/user";
+import { toRupiah } from "~/utils";
 import { Button } from "../../components/ui/button";
 import { useMyFetch } from "../../composables/useMyFetch";
 import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 import { ProductDetail } from "../../types";
 import { addProductToCart, checkIsItemExist } from "../../utils/useCart";
-import { formatDate, toRupiah } from "~/utils"
-import { ArrowLeft } from "lucide-vue-next";
-import ReviewItem from "~/components/elements/review/ReviewItem.vue"
+
 
 const { $toast } = useNuxtApp();
 const userStore = useUserStore();
@@ -41,7 +43,6 @@ interface ReviewApiResponse {
   data: Review[]
 }
 
-// TODO: PRODUCT NOT FOUND PAGE
 const { data: productResponse, pending } = await useMyFetch("/api/products/" + slug.value);
 const productData = productResponse.value as ProductApiResponse;
 const product = ref<ProductDetail>();
@@ -55,7 +56,7 @@ if (!productData.data) {
     fatal: true
   })
 }
-
+  
 const { data: reviewsResponse } = await useMyFetch('/api/product-reviews/' + product.value?.id)
 const reviews = ref<Review[]>([])
 const reviewData = reviewsResponse.value as ReviewApiResponse
@@ -170,11 +171,10 @@ const RATINGS = ['1', '2', '3', '4', '5']
 
 const showFullDesc = ref(false)
 
-// :class="{ 'lg:sticky lg:top-[0%] lg:left-10': isProductInfoInViewport }"
-
 definePageMeta({
   layout: "my-layout",
 });
+
 </script>
 <template>
   <Toaster position="top-center" richColors />
@@ -183,15 +183,15 @@ definePageMeta({
       <ArrowLeft />
     </NuxtLink>
   </div>
-  <section v-if="!pending && product"
+  <section v-if="product"
     class="sm:flex gap-8 m-2 mt-4 lg:w-[65%] xl:w-[70%] sm:mx-10 lg:m-10 lg:mx-20 font-rubik relative border-b lg:pb-10">
     <div class="sm:w-[40%] lg:w-[25%] h-full w-full bg-white">
       <Carousel :items-to-show="1">
         <Slide v-for="(image, key) in product?.images" :key="key" class="">
-          <img :src="image.url" class="rounded-md object-cover aspect-[4/3]" />
+          <img :src="image.url" class="rounded-md object-contain aspect-[4/3]" />
         </Slide>
         <template #addons>
-          <!-- <Navigation /> -->
+          <Navigation />
           <Pagination class="rounded" />
         </template>
       </Carousel>
@@ -227,83 +227,7 @@ definePageMeta({
       </div>
       <hr />
       <p class="mt-3 text-sm" :class="{ 'line-clamp-6': !showFullDesc }">
-        {{ product.description }} Lorem ipsum dolor sit amet, consectetur
-        adipiscing elit. Sed id justo a mauris aliquet hendrerit. Nullam aliquet
-        ex vel aliquet fermentum. Nam commodo hendrerit sapien, et consequat
-        velit efficitur non. Integer tincidunt, justo ut euismod efficitur,
-        nulla augue efficitur quam, non euismod lectus ex vitae mauris.
-        Vestibulum non orci non dolor congue semper. Nulla facilisi. Sed auctor
-        velit vel ligula tempus, vel cursus justo feugiat. Curabitur vestibulum
-        nunc vel nisi posuere, et dignissim lectus tincidunt. In hac habitasse
-        platea dictumst. Sed eu libero a nisi volutpat egestas non vel ipsum.
-        Pellentesque habitant morbi tristique senectus et netus et malesuada
-        fames ac turpis egestas. In varius sapien eu libero venenatis, vitae
-        cursus nisi venenatis. Nam vel libero a ligula fermentum consectetur.
-        Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere
-        cubilia Curae; Vivamus gravida, tortor id ultricies rhoncus, purus odio
-        volutpat ipsum, nec fringilla mauris nunc eu dolor. Maecenas efficitur
-        purus ut risus varius, non hendrerit libero condimentum. Sed non dolor
-        non ligula iaculis ullamcorper. Phasellus vel nisl nec odio efficitur
-        luctus. Morbi eu augue sed enim condimentum ultrices non a elit.
-        Suspendisse nec nunc nec turpis aliquet facilisis in eget justo. Sed id
-        ante non mi vulputate euismod. Etiam aliquet varius ligula, ut facilisis
-        justo. Integer semper congue ligula, et finibus ante auctor nec. Integer
-        volutpat, justo nec lacinia congue, lacus justo auctor quam, nec
-        tincidunt velit quam vel mi. Aenean varius at dolor eu posuere. Vivamus
-        ut ligula eu turpis hendrerit ultricies. Phasellus efficitur nunc vel
-        metus auctor, id interdum lacus convallis. Maecenas rhoncus, quam nec
-        tincidunt fermentum, urna velit semper mauris, vel egestas tellus mi
-        vitae metus. Curabitur vitae condimentum metus, ut volutpat libero.
-        Vivamus nec dui eu dui rhoncus hendrerit. Maecenas consectetur, metus in
-        fringilla rhoncus, felis mi fermentum arcu, ut ultrices eros tortor nec
-        metus. Duis id libero at velit commodo aliquam. Aenean nec turpis in
-        turpis consequat interdum non et ante. Donec congue hendrerit tincidunt.
-        Sed bibendum justo ut elit iaculis, eu ullamcorper libero efficitur. Sed
-        non diam sit amet ipsum viverra varius eu vitae felis. Vivamus in
-        hendrerit odio. Vivamus venenatis, odio in pharetra congue, sapien
-        tortor luctus elit, ut imperdiet ligula mauris eu erat. Maecenas eget
-        libero eu nisi cursus vehicula. Integer et metus volutpat, vehicula
-        libero ac, laoreet dolor. Morbi in malesuada leo. Vestibulum in bibendum
-        tortor, et viverra lorem. Nam semper, sem sit amet consequat hendrerit,
-        dolor elit fermentum orci, vel imperdiet mauris sapien a massa. Sed
-        fringilla nisi nec turpis sodales, vel pharetra elit condimentum.
-        Integer venenatis nec massa at convallis. Curabitur tristique, turpis
-        vel bibendum lacinia, urna nunc viverra mi, at fringilla orci mauris
-        vitae arcu. Nam dignissim, elit at sodales laoreet, ligula sapien
-        feugiat turpis, nec fermentum metus lectus nec urna. Quisque non mi eu
-        tortor dictum euismod. Nulla facilisi. Sed nec nulla in elit tincidunt
-        sodales. Sed consectetur eros vitae nulla bibendum, et egestas arcu
-        efficitur. Sed ultrices, purus non ultrices auctor, augue metus cursus
-        sapien, nec eleifend lectus purus id libero. Integer vitae massa vitae
-        odio iaculis luctus non et mi. Praesent nec lacinia eros, sit amet
-        tincidunt ligula. Fusce facilisis sagittis elit a vestibulum. Curabitur
-        elementum, sapien vel lacinia hendrerit, odio quam dignissim massa, eu
-        malesuada ex ligula et nulla. Sed nec fermentum orci. Sed dignissim
-        bibendum nulla, eu aliquam justo luctus eu. Suspendisse ullamcorper
-        libero non elit vehicula, ut fermentum massa consectetur. Sed facilisis
-        dui at tristique pharetra. Vivamus quis sagittis tellus, in iaculis
-        nulla. Donec eget lectus in velit ultrices fermentum. Vivamus at mi id
-        dui imperdiet vulputate. Cras bibendum vehicula nibh, ac ultrices arcu
-        fermentum sit amet. Sed eu condimentum odio. Vivamus in quam quis libero
-        finibus malesuada. Nulla et ante nec odio hendrerit tristique ac non
-        justo. Sed ullamcorper, felis sit amet luctus bibendum, velit nisi
-        varius purus, eu sollicitudin mi sem id dui. Vivamus non lectus nec
-        justo feugiat lacinia. Aenean malesuada efficitur metus, nec interdum
-        turpis consectetur nec. Proin ac massa fermentum, laoreet orci vel,
-        malesuada arcu. Integer feugiat nec dolor a vestibulum. Integer nec
-        sagittis mi. Proin bibendum orci vel arcu elementum, a ultricies purus
-        dapibus. Integer in orci ut ipsum facilisis tincidunt. Vivamus at
-        convallis neque. Vestibulum varius id justo vel tincidunt. Integer
-        interdum nec sem ac lacinia. Vivamus vel augue vitae elit iaculis
-        tristique. Sed euismod bibendum bibendum. Ut consectetur justo in est
-        hendrerit, eu vulputate nunc rhoncus. Nullam malesuada magna ut elit
-        dictum, nec vehicula purus ultricies. Sed bibendum justo et libero
-        tristique, vel condimentum felis tempor. In hac habitasse platea
-        dictumst. Vivamus a felis non nulla pharetra dapibus et at quam.
-        Phasellus eu finibus justo. Duis ut dui at nisl tincidunt viverra ut at
-        lectus. Nunc ac fermentum libero. Cras pharetra purus a purus iaculis,
-        vel sollicitudin dolor finibus. Vivamus gravida, ipsum ut fermentum
-        cursus,
+        {{ product.description }}
       </p>
       <button type="button" class="text-sm mb-5" @click="showFullDesc = !showFullDesc">{{ showFullDesc ? 'See less' :
         'Seemore'
@@ -394,4 +318,6 @@ definePageMeta({
   <div class="fixed w-full bottom-0 bg-white lg:hidden">
     <Button class="w-full rounded-none" @click="renderPromiseToast">Add to cart</Button>
   </div>
+  <ProductDetailSkeleton v-if="!product" />
 </template>
+

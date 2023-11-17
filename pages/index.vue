@@ -6,6 +6,7 @@ import { useMyFetch } from "../composables/useMyFetch";
 import { useSupabaseClient } from "../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 import { Product } from "../types/index";
 import { getStringBeforeAtSign, toRupiah } from "../utils";
+import ProductItemSkeleton from "~/components/elements/product/ProductItemSkeleton.vue"
 
 interface ApiResponse {
   data: Product[];
@@ -75,10 +76,11 @@ definePageMeta({
     </template>
   </div>
 
-  <div class="px-4 sm:px-6 lg:px-8 my-8" v-if="products">
+  <div class="px-4 sm:px-6 lg:px-8 my-8">
     <div class="space-y-4">
       <h3 class="font-bold text-lg lg:text-2xl">Products</h3>
-      <div class="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6">
+      <div class="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6"
+        v-if="products">
         <template v-for="product in products">
           <NuxtLink class="bg-white group cursor-pointer rounded-xl border p-1 space-y-2 lg:text-p-3"
             :to="'/product/' + product.slug">
@@ -103,6 +105,9 @@ definePageMeta({
             </div>
           </NuxtLink>
         </template>
+      </div>
+      <div class="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6" v-else>
+        <ProductItemSkeleton />
       </div>
     </div>
   </div>
