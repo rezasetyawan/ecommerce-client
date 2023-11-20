@@ -27,6 +27,7 @@ const billboards = ref([
 
 supabase.auth.onAuthStateChange(async (event, session) => {
   try {
+    console.log(event)
     if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
       const user = session?.user;
       const userData = {
@@ -81,8 +82,13 @@ definePageMeta({
   layout: "my-layout",
 });
 
+useHead({
+  title: 'Home'
+})
+
 </script>
 <template>
+  <HeadMetaData :ogImageUrl="billboards[0].image" />
   <div class="mx-auto">
     <template v-for="billboard in billboards">
       <div class="p-4 sm:p-6 lg:p-8 rounded-xl overflow-hidden">

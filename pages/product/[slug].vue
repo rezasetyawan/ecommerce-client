@@ -45,29 +45,34 @@ interface ReviewApiResponse {
 }
 
 const product = ref<ProductDetail>();
-const { data: productCache } = useNuxtData(slug.value)
-
-product.value = productCache.value?.data
 
 const getProductInfo = async () => {
   try {
-    if (!product.value) {
-      const { data: productResponse, pending } = await useMyFetch("/api/products/" + slug.value, {
-        key: slug.value
-      });
-      const productData = productResponse.value as ProductApiResponse;
-      product.value = productData.data;
+    const { data: productCache } = useNuxtData(slug.value)
 
-      if (!productData.data) {
-        throw createError({
-          statusCode: 404,
-          statusMessage: 'Product Not Found',
-          data: "Sorry, we couldn't find your desired product",
-          fatal: true
-        })
-      }
-      return product.value
+    // TODO: FIX ERROR DATA IS UNDEFINED WHEN REFRESH PAGE
+    if (productCache.value?.data) {
+      product.value = productCache.value.data
+      return
     }
+
+    const { data: productResponse, pending } = await useMyFetch("/api/products/" + slug.value, {
+      key: slug.value
+    });
+    const productData = productResponse.value as ProductApiResponse;
+    product.value = productData.data;
+    console.log(productData)
+
+    if (!productData.data) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: 'Product Not Found',
+        data: "Sorry, we couldn't find your desired product",
+        fatal: true
+      })
+    }
+    return
+
   } catch (error: any) {
     return $toast.error(error.message ? error.message : 'Failed to fetch product')
   }
@@ -228,8 +233,13 @@ definePageMeta({
   layout: "my-layout",
 });
 
+useHead({
+  title: slug.value.replaceAll('-', ' ') + '|' +  'Ini Toko',
+  titleTemplate: slug.value.replaceAll('-', ' ') + ' | ' +  'Ini Toko',
+})
 </script>
 <template>
+  <HeadMetaData :og-image-url="product?.images[0].url" :title="slug.replaceAll('-', ' ')" />
   <Toaster position="top-center" richColors />
   <div class="my-1 mx-1 z-10 sm:mx-2 sm:absolute lg:mx-8">
     <button @click="() => useRouter().go(-1)">

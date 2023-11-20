@@ -86,11 +86,12 @@ export const useUserStore = defineStore('auth', () => {
     const getUser = async (supabase: SupabaseClient) => {
         try {
             // if (!isUserExist.value) {
-                const { data: { user: supabaseUser } } = await supabase.auth.getUser()
-                const cartId = await getCartId(supabase, supabaseUser?.id as string)
-                const userData = supabaseUser ? { ...supabaseUser, cart_id: cartId } : null
-                user.value = userData as User
-                // localUser.value = userData as User
+            const { data: { user: supabaseUser } } = await supabase.auth.getUser()
+            if (!supabaseUser) return
+            const cartId = await getCartId(supabase, supabaseUser?.id as string)
+            const userData = supabaseUser ? { ...supabaseUser, cart_id: cartId } : null
+            user.value = userData as User
+            // localUser.value = userData as User
             // } else {
             //     user.value = localUser.value
             // }
