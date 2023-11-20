@@ -46,7 +46,8 @@ const cartStore = useCartStore();
 
 await userStore.getUser(supabase);
 
-await cartStore.getCartItemCounts(supabase, userStore.localUser.cart_id ? userStore.localUser.cart_id as string : '');
+// await cartStore.getCartItemCounts(supabase, userStore.localUser.cart_id ? userStore.localUser.cart_id as string : '');
+await cartStore.getCartItemCounts(supabase, userStore.user?.cart_id as string);
 
 const sheetOpen = ref(false);
 const routes = [

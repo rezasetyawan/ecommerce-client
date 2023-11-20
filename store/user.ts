@@ -67,33 +67,33 @@ interface User {
 
 export const useUserStore = defineStore('auth', () => {
     const user = ref<User | null>(null)
-    const localUser = useStorage<User>('user', {} as User, localStorage, { mergeDefaults: true })
+    // const localUser = useStorage<User>('user', {} as User, localStorage, { mergeDefaults: true })
 
-    const isUserExist = computed(() => {
-        if (user === null) {
-            return false
-        }
+    // const isUserExist = computed(() => {
+    //     if (user === null) {
+    //         return false
+    //     }
 
-        const isUserEmptyObject = JSON.stringify(user.value) === JSON.stringify({})
+    //     const isUserEmptyObject = JSON.stringify(user.value) === JSON.stringify({})
 
-        if (isUserEmptyObject) {
-            return false
-        }
+    //     if (isUserEmptyObject) {
+    //         return false
+    //     }
 
-        return true
-    })
+    //     return true
+    // })
 
     const getUser = async (supabase: SupabaseClient) => {
         try {
-            if (!isUserExist.value) {
+            // if (!isUserExist.value) {
                 const { data: { user: supabaseUser } } = await supabase.auth.getUser()
                 const cartId = await getCartId(supabase, supabaseUser?.id as string)
                 const userData = supabaseUser ? { ...supabaseUser, cart_id: cartId } : null
                 user.value = userData as User
-                localUser.value = userData as User
-            } else {
-                user.value = localUser.value
-            }
+                // localUser.value = userData as User
+            // } else {
+            //     user.value = localUser.value
+            // }
         } catch (error: any) {
             throw new Error(error.message)
         }
@@ -107,11 +107,11 @@ export const useUserStore = defineStore('auth', () => {
                 throw new Error(error.message)
             }
             user.value = {} as User
-            localUser.value = {} as User
+            // localUser.value = {} as User
             return
         } catch (error: any) {
             throw new Error(error.message)
         }
     }
-    return { user, getUser, localUser, signOut }
+    return { user, getUser, signOut }
 })

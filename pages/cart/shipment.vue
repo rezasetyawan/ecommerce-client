@@ -132,8 +132,6 @@ const itemsTotalWeight = computed(() => {
 const userCityCode = ref("");
 const storeCityCode = ref("");
 
-// TODO: FIX ERROR GETTING SHIPMENT COST
-
 // getting city code for calculate shipping cost
 const getShipmentCost = async () => {
   try {
@@ -305,7 +303,7 @@ definePageMeta({
       <div>
         <template v-for="product in cartStore.selectedCartItems">
           <div class="flex gap-3 mb-2">
-            <img :src="product.image_url" class="w-14 lg:w-20" />
+            <NuxtLink :src="product.image_url" class="w-14 lg:w-20" :alt="product.name" quality="50" />
             <div>
               <h2 class="text-sm font-medium lg:text-base">{{ product.name }}</h2>
               <div>

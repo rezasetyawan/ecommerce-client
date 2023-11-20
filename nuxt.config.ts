@@ -8,13 +8,15 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
-  modules: ['@nuxtjs/supabase', '@vueuse/nuxt', '@pinia/nuxt'],
+  modules: ['@nuxtjs/supabase', '@vueuse/nuxt', '@pinia/nuxt', '@nuxt/image'],
   supabase: {
     redirect: false,
     url: process.env.SUPABASE_URL,
     key: process.env.SUPABASE_KEY
   },
-  ssr: false,
+  image: {
+    domains: [process.env.SUPABASE_URL as string]
+  },
   runtimeConfig: {
     public: {
       SUPABASE_URL: process.env.SUPABASE_URL as string,

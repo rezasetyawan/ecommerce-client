@@ -68,13 +68,10 @@ const getProductInfo = async () => {
       }
       return product.value
     }
-    console.log('from cache boy')
   } catch (error: any) {
     return $toast.error(error.message ? error.message : 'Failed to fetch product')
   }
 }
-
-
 
 const reviews = ref<Review[]>()
 const { data: reviewsCache } = useNuxtData(`${slug.value}-reviews`)
@@ -90,7 +87,6 @@ const getReviews = async () => {
       reviews.value = reviewData.data
       return reviews.value
     }
-    console.log('dari cache boy')
   } catch (error: any) {
     return $toast.error(error.message ? error.message : 'Failed to fetch product reviews')
   }
@@ -100,6 +96,12 @@ const seletedVariant = ref<string>();
 seletedVariant.value = product.value?.variants.find(
   (variant) => variant.is_default === true
 )?.id;
+
+watch(product, () => {
+  seletedVariant.value = product.value?.variants.find(
+    (variant) => variant.is_default === true
+  )?.id;
+}, { immediate: true })
 
 const price = ref(0);
 if (product.value) {
@@ -230,16 +232,16 @@ definePageMeta({
 <template>
   <Toaster position="top-center" richColors />
   <div class="my-1 mx-1 z-10 sm:mx-2 sm:absolute lg:mx-8">
-    <NuxtLink :to="'/products'">
+    <button @click="() => useRouter().go(-1)">
       <ArrowLeft />
-    </NuxtLink>
+    </button>
   </div>
   <section v-if="product"
     class="sm:flex gap-8 m-2 mt-4 lg:w-[65%] xl:w-[70%] sm:mx-10 lg:m-10 lg:mx-20 font-rubik relative border-b lg:pb-10">
     <div class="sm:w-[40%] lg:w-[25%] h-full w-full bg-white">
       <Carousel :items-to-show="1">
         <Slide v-for="(image, key) in product?.images" :key="key" class="">
-          <img :src="image.url" class="rounded-md object-contain aspect-[4/3]" />
+          <NuxtImg :src="image.url" class="rounded-md object-contain aspect-[4/3]" :alt="product.name" quality="80" />
         </Slide>
         <template #addons>
           <Navigation />

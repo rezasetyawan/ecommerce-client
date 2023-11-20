@@ -122,7 +122,7 @@ const confirmPayment = async () => {
     }
 
     await updateOrderStatus(supabase, orderId.value, "ONPROCESS")
-    
+
     const variantIds = await getOrderProductVariantIds(supabase, orderId.value);
     await updateProductStocks(supabase, orderId.value, variantIds);
   } catch (error: any) {
