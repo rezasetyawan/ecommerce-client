@@ -1,22 +1,22 @@
 <script setup lang="ts">
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
+AlertDialog,
+AlertDialogAction,
+AlertDialogCancel,
+AlertDialogContent,
+AlertDialogDescription,
+AlertDialogFooter,
+AlertDialogHeader,
+AlertDialogTitle,
+AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
 import { Button } from "~/components/ui/button";
+import { useMyFetch } from "~/composables/useMyFetch";
 import { useUserStore } from "~/store/user";
 import { Order } from "~/types";
 import { formatDate, toRupiah } from "~/utils";
 import { updateOrderStatus } from "~/utils/useOrder";
 import { updateProductSoldCounts } from "~/utils/useProduct";
-import { useMyFetch } from "../../composables/useMyFetch";
 import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 
 interface ApiResponse {
@@ -38,8 +38,6 @@ const { data } = await useMyFetch("/api/orders", {
 const orders = ref<Order[]>([]);
 const ordersData = data.value as ApiResponse;
 orders.value = ordersData.data.orders;
-
-
 
 const getStatusMessage = (status: string) => {
   let statusMessage: string = "";

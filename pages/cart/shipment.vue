@@ -1,12 +1,14 @@
 <script setup lang="ts">
+import { ArrowLeft } from "lucide-vue-next";
+import { Button } from "~/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
+Select,
+SelectContent,
+SelectGroup,
+SelectItem,
+SelectLabel,
+SelectTrigger,
+SelectValue,
 } from "~/components/ui/select";
 import { useMyFetch } from "~/composables/useMyFetch";
 import { useCartStore } from "~/store/cart";
@@ -15,9 +17,7 @@ import { Address, OrderData, PaymentData } from "~/types";
 import { toRupiah } from "~/utils";
 import { getUserMainAddress } from "~/utils/useAddress";
 import { addOrder, addOrderProduct, addPayment } from "~/utils/useOrder";
-import { Button } from "../../components/ui/button";
 import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
-import { ArrowLeft } from "lucide-vue-next";
 
 interface Shipment {
   service: string;
@@ -56,6 +56,8 @@ interface ShipmentCostResponse {
 }
 
 const { $toast } = useNuxtApp();
+
+// TODO: ADD INFO TABLE
 const storeAddress = ref({
   name: "Ini Toko",
   full_address: "Jl.jalan",
@@ -130,6 +132,8 @@ const itemsTotalWeight = computed(() => {
 const userCityCode = ref("");
 const storeCityCode = ref("");
 
+// TODO: FIX ERROR GETTING SHIPMENT COST
+
 // getting city code for calculate shipping cost
 const getShipmentCost = async () => {
   try {
@@ -188,8 +192,8 @@ onMounted(async () => {
     userStore.user?.id as string
   );
   address.value = addressData as Address;
-  console.log(addressData)
 
+  // get items weight
   const checkoutItemsData = await Promise.all(
     cartStore.selectedCartItems.map(async (item) => {
       const { data, error } = await supabase
@@ -208,13 +212,10 @@ onMounted(async () => {
   );
 
   checkoutItems.value = checkoutItemsData as CheckoutItem[];
-  console.log(checkoutItems.value);
 
   const shipmentData = await getShipmentCost();
   shipmentCost.value = shipmentData;
 });
-
-watch(openShipmentItem, () => openShipmentItem.value);
 
 const onSubmitHandler = async () => {
   try {

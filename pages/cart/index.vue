@@ -1,29 +1,29 @@
 <script setup lang="ts">
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "~/components/ui/alert-dialog";
 import { Trash2 } from "lucide-vue-next";
 import { ref } from "vue";
-import { useCartStore } from "~/store/cart";
-import { toRupiah } from "~/utils";
-import { Button } from "../../components/ui/button";
-import { Checkbox } from "../../components/ui/checkbox";
-import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
-import { useUserStore } from "../../store/user";
-import { CartItem } from "../../types";
 import {
-  deleteCartItem,
-  deleteMultipleCartItem,
-  getCartItems,
-} from "../../utils/useCart";
+AlertDialog,
+AlertDialogAction,
+AlertDialogCancel,
+AlertDialogContent,
+AlertDialogDescription,
+AlertDialogFooter,
+AlertDialogHeader,
+AlertDialogTitle,
+AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
+import { Button } from "~/components/ui/button";
+import { Checkbox } from "~/components/ui/checkbox";
+import { useCartStore } from "~/store/cart";
+import { useUserStore } from "~/store/user";
+import { CartItem } from "~/types";
+import { toRupiah } from "~/utils";
+import {
+deleteCartItem,
+deleteCartItems,
+getCartItems,
+} from "~/utils/useCart";
+import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 
 const { $toast } = useNuxtApp();
 const userStore = useUserStore();
@@ -39,21 +39,12 @@ cartItems.value = (await getCartItems(
 )) as CartItem[];
 
 
-
 const deleteLocalCartItem = (id: string) => {
   const index = cartItems.value?.findIndex((item) => item.id === id);
 
   if (index !== -1 && index !== undefined) {
     cartItems.value?.splice(index, 1);
   }
-};
-const deleteCartItemHanlder = async (id: string) => {
-  try {
-    await deleteCartItem(supabase, id);
-    deleteLocalCartItem(id);
-
-    await cartStore.getCartItemCounts(supabase, userStore.user?.cart_id as string);
-  } catch (error) { }
 };
 
 const selectedItemsId = ref<string[]>([]);
@@ -76,7 +67,7 @@ const selectedItems = computed(() => {
   });
 });
 
-const totalPriceOfSelectedItems = computed(() => {
+const selectedItemsTotalPrice = computed(() => {
   return selectedItems.value
     ? selectedItems.value.reduce((accumulator, currentValue) => {
       return accumulator + currentValue.price * currentValue.quantity;
@@ -98,20 +89,33 @@ const selectAllItemHandler = async (isChecked: boolean) => {
   }
 };
 
-const deleteSelectedItems = async () => {
+const deleteCartItemHanlder = async (id: string) => {
+  try {
+    await deleteCartItem(supabase, id);
+    deleteLocalCartItem(id);
+
+    await cartStore.getCartItemCounts(supabase, userStore.user?.cart_id as string);
+    return $toast.success('Items deleted')
+  } catch (error: any) {
+    return $toast.error(error.message ? error.message : 'Failed to delete product')
+  }
+};
+
+const deleteSelectedCartItems = async () => {
   try {
     if (selectedItemsId.value.length > 0) {
-      await deleteMultipleCartItem(supabase, selectedItemsId.value);
+      await deleteCartItems(supabase, selectedItemsId.value);
 
       await cartStore.getCartItemCounts(supabase, userStore.user?.cart_id as string);
 
-      // delete local cart items
+      // delete local (memory) cart items
       cartItems.value = cartItems.value?.filter(
         (item) => !selectedItemsId.value.includes(item.id)
       );
     }
-  } catch (error) {
-    console.error(error);
+    return $toast.success('Items deleted')
+  } catch (error: any) {
+    return $toast.error(error.message ? error.message : 'Failed to delete order')
   }
 };
 
@@ -127,8 +131,8 @@ const checkoutHandler = () => {
 };
 
 definePageMeta({
-    layout: 'my-layout',
-    middleware: 'auth'
+  layout: 'my-layout',
+  middleware: 'auth'
 });
 </script>
 <template>
@@ -157,7 +161,7 @@ definePageMeta({
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction @click="deleteSelectedItems()">Continue</AlertDialogAction>
+                <AlertDialogAction @click="deleteSelectedCartItems()">Continue</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -210,11 +214,11 @@ definePageMeta({
         <p class="text-base my-2"></p>
         <div class="flex gap-3 items-center w-full max-w-full text-slate-500 text-[14px] flex-wrap">
           <p class="">Total Price ({{ selectedItems?.length }} products)</p>
-          <p class="">{{ toRupiah(totalPriceOfSelectedItems) }}</p>
+          <p class="">{{ toRupiah(selectedItemsTotalPrice) }}</p>
         </div>
         <div class="xl:flex justify-between items-center my-5">
           <p class="font-medium">Subtotal:</p>
-          <p>{{ toRupiah(totalPriceOfSelectedItems) }}</p>
+          <p>{{ toRupiah(selectedItemsTotalPrice) }}</p>
         </div>
       </div>
 
@@ -226,7 +230,7 @@ definePageMeta({
   <div class="fixed bottom-0 left-0 w-full flex justify-end items-center bg-white p-3 gap-3 md:hidden">
     <div class="text-xs">
       <p>Subtotal</p>
-      <p>{{ toRupiah(totalPriceOfSelectedItems) }}</p>
+      <p>{{ toRupiah(selectedItemsTotalPrice) }}</p>
     </div>
     <Button size="sm" class="text-sm">Checkout ({{ selectedItems?.length }})</Button>
   </div>

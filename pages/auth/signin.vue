@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 import { Eye, EyeOff } from "lucide-vue-next";
-import { Input } from "../../components/ui/input";
-import { Button } from "../../components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Button } from "~/components/ui/button";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useRuntimeConfig } from "nuxt/app";

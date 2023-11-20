@@ -17,29 +17,26 @@ const isLoading = ref(true)
 const { $toast } = useNuxtApp()
 const cacheKey = ref("/products")
 
-// watch(cacheKey, () => {
-//   console.log(cacheKey.value)
-//   const { data: productsCache } = useNuxtData(cacheKey.value)
-//   products.value = productsCache.value?.data
-// })
 
 const getProducts = async () => {
   try {
-    console.log(cacheKey.value)
     isLoading.value = true
-    // if (!products.value) {
-      const { data, error } = await useMyFetch("/api/products", {
-        method: "GET",
-        query: {
-          search: searchKey.value
-        },
-        key: cacheKey.value
-      });
+    const { data: productsCache } = useNuxtData(cacheKey.value)
+    if (productsCache.value?.data) {
+      products.value = productsCache.value.data
+      return
+    }
+    const { data } = await useMyFetch("/api/products", {
+      method: "GET",
+      query: {
+        search: searchKey.value
+      },
+      key: cacheKey.value
+    });
 
-      const productData = data.value as ApiResponse;
-      products.value = productData.data;
-      return products.value
-    // }
+    const productData = data.value as ApiResponse;
+    products.value = productData.data;
+    return
   } catch (error: any) {
     return $toast.error(error.message ? `${error.message}` : "Failed to fetch product")
   } finally {
@@ -48,11 +45,7 @@ const getProducts = async () => {
 };
 
 onMounted(async () => {
-  console.log(cacheKey.value)
-  const products = await getProducts();
-  if (!products) {
-    await getProducts()
-  }
+  await getProducts();
 });
 
 onBeforeRouteUpdate(async (to, from) => {
@@ -64,7 +57,6 @@ onBeforeRouteUpdate(async (to, from) => {
 
   searchKey.value = to.query.search as string
   cacheKey.value = to.fullPath
-  console.log(cacheKey.value)
   await getProducts();
 });
 
@@ -75,16 +67,6 @@ const getAverageRating = (rating: string[]) => {
     return accumulator + parseInt(currentValue)
   }, 0) / rating.length).toFixed(1)
 }
-
-watch(
-  [route],
-  async () => {
-    await getProducts();
-  },
-  { immediate: true }
-);
-
-
 
 definePageMeta({
   layout: "my-layout",

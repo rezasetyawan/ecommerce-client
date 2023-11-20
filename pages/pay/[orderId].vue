@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { toRupiah } from "~/utils";
+import { ArrowLeft } from "lucide-vue-next";
 import { Alert, AlertDescription } from "~/components/ui/alert";
+import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { Button } from "~/components/ui/button";
+import { toRupiah } from "~/utils";
 import { addImage } from "~/utils/useImage";
 import { updateProductStocks } from "~/utils/useProduct";
-import { ArrowLeft } from "lucide-vue-next";
+import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
+import { getOrderStatus, getOrderProductVariantIds } from "~/utils/useOrder"
 
 const { $toast } = useNuxtApp();
 const supabase = useSupabaseClient();
@@ -60,47 +61,47 @@ const getPaymentAmount = async (client: SupabaseClient, orderId: string) => {
   }
 };
 
-const getOrderStatus = async (client: SupabaseClient, orderId: string) => {
-  try {
-    const { data, error } = await client
-      .from("orders")
-      .select("status")
-      .eq("id", orderId)
-      .single();
+// const getOrderStatus = async (client: SupabaseClient, orderId: string) => {
+//   try {
+//     const { data, error } = await client
+//       .from("orders")
+//       .select("status")
+//       .eq("id", orderId)
+//       .single();
 
-    if (error) {
-      throw new Error(error.message);
-    }
+//     if (error) {
+//       throw new Error(error.message);
+//     }
 
-    return data.status;
-  } catch (error: any) {
-    throw new Error(error.message)
-  }
-};
+//     return data.status;
+//   } catch (error: any) {
+//     throw new Error(error.message)
+//   }
+// };
 
-const getOrderProductVariantIds = async (
-  client: SupabaseClient,
-  orderId: string
-) => {
-  try {
-    const { data: variants, error } = await client
-      .from("order_products")
-      .select("variant_id")
-      .eq("order_id", orderId);
+// const getOrderProductVariantIds = async (
+//   client: SupabaseClient,
+//   orderId: string
+// ) => {
+//   try {
+//     const { data: variants, error } = await client
+//       .from("order_products")
+//       .select("variant_id")
+//       .eq("order_id", orderId);
 
-    if (error) {
-      throw new Error(error.message);
-    }
+//     if (error) {
+//       throw new Error(error.message);
+//     }
 
-    const data = variants.map((variant) => {
-      return variant.variant_id as string;
-    });
+//     const data = variants.map((variant) => {
+//       return variant.variant_id as string;
+//     });
 
-    return data;
-  } catch (error: any) {
-    throw new Error(error.message);
-  }
-};
+//     return data;
+//   } catch (error: any) {
+//     throw new Error(error.message);
+//   }
+// };
 
 onBeforeMount(async () => {
   isOrderExist.value = await isOrderValid(supabase, orderId.value)

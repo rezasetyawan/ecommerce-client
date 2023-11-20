@@ -144,7 +144,7 @@ const deleteCartItem = async (client: SupabaseClient, cartItemId: string) => {
     }
 }
 
-const deleteMultipleCartItem = async (client: SupabaseClient, cartItemsId: string[]) => {
+const deleteCartItems = async (client: SupabaseClient, cartItemsId: string[]) => {
     try {
         const { error } = await client.from('cart_items').delete().in('id', cartItemsId)
 
@@ -155,4 +155,4 @@ const deleteMultipleCartItem = async (client: SupabaseClient, cartItemsId: strin
         throw new Error(err.message)
     }
 }
-export { addProductToCart, getUserCartItemCounts, getCartId, checkIsItemExist, getCartItems, deleteCartItem, deleteMultipleCartItem }
+export { addProductToCart, getUserCartItemCounts, getCartId, checkIsItemExist, getCartItems, deleteCartItem, deleteCartItems }

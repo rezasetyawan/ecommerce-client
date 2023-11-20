@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// TODO: REFACTOR THIS
 import { useElementVisibility } from "@vueuse/core";
 import { ArrowLeft } from "lucide-vue-next";
 import { ref } from "vue";
@@ -43,33 +44,70 @@ interface ReviewApiResponse {
   data: Review[]
 }
 
-const { data: productResponse, pending } = await useMyFetch("/api/products/" + slug.value);
-const productData = productResponse.value as ProductApiResponse;
 const product = ref<ProductDetail>();
-product.value = productData.data;
+const { data: productCache } = useNuxtData(slug.value)
 
-if (!productData.data) {
-  throw createError({
-    statusCode: 404,
-    statusMessage: 'Product Not Found',
-    data: "Sorry, we couldn't find your desired product",
-    fatal: true
-  })
+product.value = productCache.value?.data
+
+const getProductInfo = async () => {
+  try {
+    if (!product.value) {
+      const { data: productResponse, pending } = await useMyFetch("/api/products/" + slug.value, {
+        key: slug.value
+      });
+      const productData = productResponse.value as ProductApiResponse;
+      product.value = productData.data;
+
+      if (!productData.data) {
+        throw createError({
+          statusCode: 404,
+          statusMessage: 'Product Not Found',
+          data: "Sorry, we couldn't find your desired product",
+          fatal: true
+        })
+      }
+      return product.value
+    }
+    console.log('from cache boy')
+  } catch (error: any) {
+    return $toast.error(error.message ? error.message : 'Failed to fetch product')
+  }
 }
-  
-const { data: reviewsResponse } = await useMyFetch('/api/product-reviews/' + product.value?.id)
-const reviews = ref<Review[]>([])
-const reviewData = reviewsResponse.value as ReviewApiResponse
-reviews.value = reviewData.data
+
+
+
+const reviews = ref<Review[]>()
+const { data: reviewsCache } = useNuxtData(`${slug.value}-reviews`)
+reviews.value = reviewsCache.value?.data
+
+const getReviews = async () => {
+  try {
+    if (!reviews.value) {
+      const { data: reviewsResponse } = await useMyFetch('/api/product-reviews/' + product.value?.id, {
+        key: `${slug.value}-reviews`
+      })
+      const reviewData = reviewsResponse.value as ReviewApiResponse
+      reviews.value = reviewData.data
+      return reviews.value
+    }
+    console.log('dari cache boy')
+  } catch (error: any) {
+    return $toast.error(error.message ? error.message : 'Failed to fetch product reviews')
+  }
+}
 
 const seletedVariant = ref<string>();
-seletedVariant.value = product.value.variants.find(
+seletedVariant.value = product.value?.variants.find(
   (variant) => variant.is_default === true
 )?.id;
 
-const price = ref(product.value.price);
+const price = ref(0);
+if (product.value) {
+  price.value = product.value.price
+}
+
 const variant = ref("");
-variant.value = product.value.variants.find(
+variant.value = product.value?.variants.find(
   (variant) => variant.is_default === true
 )?.value as string;
 
@@ -148,7 +186,7 @@ const totalRating = computed(() => {
 })
 
 const getRatingPercentageAndCounts = (rating: string) => {
-  if (!reviews.value.length) {
+  if (!reviews.value || !reviews.value.length) {
     return {
       percentage: 0,
       counts: 0
@@ -170,6 +208,19 @@ const getRatingPercentageAndCounts = (rating: string) => {
 const RATINGS = ['1', '2', '3', '4', '5']
 
 const showFullDesc = ref(false)
+
+onMounted(async () => {
+  const product = await getProductInfo()
+  const reviews = await getReviews()
+
+  if (!product) {
+    await getProductInfo()
+  }
+
+  if (!reviews) {
+    await getReviews()
+  }
+})
 
 definePageMeta({
   layout: "my-layout",
@@ -198,7 +249,7 @@ definePageMeta({
     </div>
 
     <!-- product info -->
-    <div class="sm:w-[70%]" ref="productInfo">
+    <div class="sm:w-[70%]" ref="productInfo" v-if="reviews && product">
       <h2 class="text-lg font-semibold lg:text-2xl">{{ product?.name }}</h2>
       <div class="flex items-center gap-2 text-sm lg:text-base">
         <p>{{ product.sold }} <span class="font-medium">Sold</span></p>
@@ -273,7 +324,7 @@ definePageMeta({
 
   <!-- product reviews section -->
   <section>
-    <div v-if="reviews" class="mx-2 lg:w-[65%] lg:mx-20 xl:w-[70%] sm:flex sm:mx-10 gap-10">
+    <div v-if="reviews && product" class="mx-2 lg:w-[65%] lg:mx-20 xl:w-[70%] sm:flex sm:mx-10 gap-10">
       <!-- user rating stat -->
       <div class="w-full max-md:border-b max-md:pb-4 sm:w-[40%] md:w-min">
         <h2 class="text-lg whitespace-nowrap font-medium lg:text-xl">Product Reviews</h2>

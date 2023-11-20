@@ -16,9 +16,9 @@ const supabase = useSupabaseClient();
 const { data: { user } } = await supabase.auth.getUser()
 console.log(user)
 const { getUser } = useUserStore()
-const products = ref<Product[]>();
+const featuredProducts = ref<Product[]>();
 const { data: featuredProductsCache } = useNuxtData('featured-products')
-products.value = featuredProductsCache.value?.data
+featuredProducts.value = featuredProductsCache.value?.data
 
 const billboards = ref([
   {
@@ -60,13 +60,13 @@ const getAverageRating = (rating: string[]) => {
 
 const getFeaturedProducts = async () => {
   try {
-    if (!products.value) {
+    if (!featuredProducts.value) {
       const { data } = await useMyFetch("/api/featured-products", {
         key: 'featured-products'
       });
       const productData = data.value as ApiResponse;
-      products.value = productData.data;
-      return products.value
+      featuredProducts.value = productData.data;
+      return featuredProducts.value
     }
   } catch (error) {
 
@@ -104,8 +104,8 @@ definePageMeta({
     <div class="space-y-4">
       <h3 class="font-bold text-lg lg:text-2xl">Products</h3>
       <div class="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6"
-        v-if="products">
-        <template v-for="product in products">
+        v-if="featuredProducts">
+        <template v-for="product in featuredProducts">
           <NuxtLink class="bg-white group cursor-pointer rounded-xl border p-1 space-y-2 lg:text-p-3"
             :to="'/product/' + product.slug">
             <div class="aspect-square rounded-xl bg-gray-100 relative">
