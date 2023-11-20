@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { Trash2 } from "lucide-vue-next";
+import { Trash2, ArrowLeft } from "lucide-vue-next";
 import { ref } from "vue";
 import {
-AlertDialog,
-AlertDialogAction,
-AlertDialogCancel,
-AlertDialogContent,
-AlertDialogDescription,
-AlertDialogFooter,
-AlertDialogHeader,
-AlertDialogTitle,
-AlertDialogTrigger,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -93,10 +93,18 @@ definePageMeta({
 <template>
   <Toaster position="top-center" richColors />
   <section class="p-3 md:mx-20 lg:mx-40 ">
-    <div class="flex justify-end">
-      <Button>
-        <NuxtLink :to="'/profile/address/new'" size="sm" class="text-sm lg:text-sm">Add address</NuxtLink>
-      </Button>
+    <div class="flex justify-between items-center">
+      <div class="">
+        <button @click="() => useRouter().go(-1)" class="p-3 w-auto block">
+          <ArrowLeft />
+        </button>
+      </div>
+
+      <div class="flex justify-end">
+        <Button>
+          <NuxtLink :to="'/profile/address/new'" size="sm" class="text-sm lg:text-sm">Add address</NuxtLink>
+        </Button>
+      </div>
     </div>
 
     <div class="mt-5 space-y-2 transition-all duration-700">
