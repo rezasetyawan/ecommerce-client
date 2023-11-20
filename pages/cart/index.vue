@@ -2,15 +2,15 @@
 import { Trash2 } from "lucide-vue-next";
 import { ref } from "vue";
 import {
-AlertDialog,
-AlertDialogAction,
-AlertDialogCancel,
-AlertDialogContent,
-AlertDialogDescription,
-AlertDialogFooter,
-AlertDialogHeader,
-AlertDialogTitle,
-AlertDialogTrigger,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
@@ -19,9 +19,9 @@ import { useUserStore } from "~/store/user";
 import { CartItem } from "~/types";
 import { toRupiah } from "~/utils";
 import {
-deleteCartItem,
-deleteCartItems,
-getCartItems,
+  deleteCartItem,
+  deleteCartItems,
+  getCartItems,
 } from "~/utils/useCart";
 import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 
@@ -137,8 +137,8 @@ definePageMeta({
 </script>
 <template>
   <Toaster position="top-center" richColors />
-  <section v-if="cartItems" class="sm:flex gap-8 m-2 lg:m-10 font-rubik mb-[1200px] relative">
-    <div class="md:w-[60%] lg:w-[75%]">
+  <section v-if="cartItems" class="sm:flex gap-8 m-2 lg:m-10 font-rubik relative">
+    <div class="w-full md:w-[65%] lg:w-[70%]">
       <div class="border-b p-2">
         <h2 class="text-lg font-semibold w-full mb-2 pb-2 lg:text-2xl">Cart</h2>
         <div class="flex justify-between items-center">
@@ -208,30 +208,33 @@ definePageMeta({
         </div>
       </template>
     </div>
-    <div class="border rounded-lg p-3 flex-col justify-between fixed bg-white right-10 hidden md:flex">
+    <div
+      class="border rounded-lg p-3 flex-col justify-between fixed bg-white right-2 hidden md:flex md:w-[30%] lg:w-[25%] lg:right-10">
       <div>
-        <h3 class="font-medium text-lg">Shopping summary</h3>
-        <p class="text-base my-2"></p>
-        <div class="flex gap-3 items-center w-full max-w-full text-slate-500 text-[14px] flex-wrap">
+        <h3 class="font-medium text-sm xl:text-base">Shopping summary</h3>
+        <div class="flex gap-3 items-center w-full max-w-full text-slate-500 text-[14px] flex-wrap text-sm xl:text-base">
           <p class="">Total Price ({{ selectedItems?.length }} products)</p>
           <p class="">{{ toRupiah(selectedItemsTotalPrice) }}</p>
         </div>
         <div class="xl:flex justify-between items-center my-5">
-          <p class="font-medium">Subtotal:</p>
-          <p>{{ toRupiah(selectedItemsTotalPrice) }}</p>
+          <p class="font-medium text-sm xl:text-base">Subtotal:</p>
+          <p class="text-sm xl:text-base">{{ toRupiah(selectedItemsTotalPrice) }}</p>
         </div>
       </div>
 
       <div class="mt-12">
-        <Button class="w-full" @click="checkoutHandler">Checkout</Button>
+        <Button @click="checkoutHandler" class="w-full text-xs lg:text-sm">Checkout</Button>
       </div>
     </div>
   </section>
-  <div class="fixed bottom-0 left-0 w-full flex justify-end items-center bg-white p-3 gap-3 md:hidden">
+
+  <!-- checkout section for mobile phone -->
+  <div class="fixed bottom-0 left-0 w-full flex justify-end items-center border shadow-sm bg-white p-3 gap-3 md:hidden">
     <div class="text-xs">
       <p>Subtotal</p>
       <p>{{ toRupiah(selectedItemsTotalPrice) }}</p>
     </div>
     <Button size="sm" class="text-sm">Checkout ({{ selectedItems?.length }})</Button>
   </div>
+  <!-- end of mobile checkout section -->
 </template>

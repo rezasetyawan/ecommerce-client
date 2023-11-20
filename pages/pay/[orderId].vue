@@ -7,9 +7,9 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { toRupiah } from "~/utils";
 import { addImage } from "~/utils/useImage";
+import { getOrderProductVariantIds, getOrderStatus, updateOrderStatus } from "~/utils/useOrder";
 import { updateProductStocks } from "~/utils/useProduct";
 import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
-import { getOrderStatus, getOrderProductVariantIds } from "~/utils/useOrder"
 
 const { $toast } = useNuxtApp();
 const supabase = useSupabaseClient();
@@ -61,49 +61,7 @@ const getPaymentAmount = async (client: SupabaseClient, orderId: string) => {
   }
 };
 
-// const getOrderStatus = async (client: SupabaseClient, orderId: string) => {
-//   try {
-//     const { data, error } = await client
-//       .from("orders")
-//       .select("status")
-//       .eq("id", orderId)
-//       .single();
-
-//     if (error) {
-//       throw new Error(error.message);
-//     }
-
-//     return data.status;
-//   } catch (error: any) {
-//     throw new Error(error.message)
-//   }
-// };
-
-// const getOrderProductVariantIds = async (
-//   client: SupabaseClient,
-//   orderId: string
-// ) => {
-//   try {
-//     const { data: variants, error } = await client
-//       .from("order_products")
-//       .select("variant_id")
-//       .eq("order_id", orderId);
-
-//     if (error) {
-//       throw new Error(error.message);
-//     }
-
-//     const data = variants.map((variant) => {
-//       return variant.variant_id as string;
-//     });
-
-//     return data;
-//   } catch (error: any) {
-//     throw new Error(error.message);
-//   }
-// };
-
-onBeforeMount(async () => {
+onMounted(async () => {
   isOrderExist.value = await isOrderValid(supabase, orderId.value)
 
   if (!isOrderExist.value) {
@@ -163,17 +121,10 @@ const confirmPayment = async () => {
       throw new Error(error.message);
     }
 
-    const { error: orderError } = await supabase
-      .from("orders")
-      .update({ status: "ONPROCESS" } as never)
-      .eq("id", orderId.value);
-
+    await updateOrderStatus(supabase, orderId.value, "ONPROCESS")
+    
     const variantIds = await getOrderProductVariantIds(supabase, orderId.value);
     await updateProductStocks(supabase, orderId.value, variantIds);
-
-    if (orderError) {
-      throw new Error(orderError.message);
-    }
   } catch (error: any) {
     throw new Error(error.message);
   }
