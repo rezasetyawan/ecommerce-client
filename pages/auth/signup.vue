@@ -37,7 +37,7 @@ const signUpUser = async () => {
     await supabase.from("users").insert(userData as never);
 
     if (error) {
-      return console.error(error.message);
+      throw new Error(error.message)
     }
     return router.push("/");
   } catch (err: any) {

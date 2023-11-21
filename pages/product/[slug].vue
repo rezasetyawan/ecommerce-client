@@ -97,15 +97,15 @@ const getReviews = async () => {
   }
 }
 
-const seletedVariant = ref<string>();
-seletedVariant.value = product.value?.variants.find(
-  (variant) => variant.is_default === true
-)?.id;
+const seletedVariant = ref("");
+// seletedVariant.value = product.value?.variants.find(
+//   (variant) => variant.is_default === true
+// )?.id;
 
 watch(product, () => {
   seletedVariant.value = product.value?.variants.find(
     (variant) => variant.is_default === true
-  )?.id;
+  )?.id as string
 }, { immediate: true })
 
 const price = ref(0);
@@ -234,8 +234,8 @@ definePageMeta({
 });
 
 useHead({
-  title: slug.value.replaceAll('-', ' ') + '|' +  'Ini Toko',
-  titleTemplate: slug.value.replaceAll('-', ' ') + ' | ' +  'Ini Toko',
+  title: slug.value.replaceAll('-', ' ') + '|' + 'Ini Toko',
+  titleTemplate: slug.value.replaceAll('-', ' ') + ' | ' + 'Ini Toko',
 })
 </script>
 <template>
@@ -378,7 +378,7 @@ useHead({
   </section>
   <!-- end of product reviews section -->
 
-  <div class="fixed w-full bottom-0 bg-white lg:hidden">
+  <div class="fixed w-full bottom-0 z-20 bg-white lg:hidden">
     <Button class="w-full rounded-none" @click="renderPromiseToast">Add to cart</Button>
   </div>
   <ProductDetailSkeleton v-if="!product" />

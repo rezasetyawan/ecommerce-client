@@ -24,8 +24,9 @@ const signInUser = async () => {
     const { data, error } = await supabase.auth.signInWithPassword(user.value);
 
     if (error) {
-      return console.log(error.message);
+      throw new Error(error.message)
     }
+
     return router.push("/");
   } catch (err: any) {
     throw new Error(err.message)

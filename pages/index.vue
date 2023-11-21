@@ -113,8 +113,8 @@ useHead({
           <NuxtLink class="bg-white group cursor-pointer rounded-xl border p-1 space-y-2 lg:text-p-3"
             :to="'/product/' + product.slug">
             <div class="aspect-square rounded-xl bg-gray-100 relative">
-              <NuxtImg :src="product.image_url" fill class="aspect-square object-contain rounded-md" :alt="product.name"
-                loading="lazy" quality="50" />
+              <NuxtImg :src="product.image_url ? product.image_url : ''" fill
+                class="aspect-square object-contain rounded-md" :alt="product.name" loading="lazy" quality="50" />
             </div>
             <div>
               <p class="font-medium truncate text-base">{{ product.name }}</p>

@@ -1,27 +1,15 @@
 <script setup lang="ts">
 import {
+  ArrowLeft,
   Home,
+  Loader2,
   LogOut,
   Menu,
   Search,
   ShoppingBag,
-  ShoppingCart,
-  ArrowLeft,
-  Loader2
+  ShoppingCart
 } from "lucide-vue-next";
 import { ref } from "vue";
-import { cn } from "../../lib/utils";
-import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
-import { Button } from "../ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import SheetMenu from './SheetMenu.vue'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,16 +21,30 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
+import { cn } from "../../lib/utils";
+import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
+import { Button } from "../ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import SheetMenu from './SheetMenu.vue';
 
 import { useDebounceFn } from "@vueuse/core";
 import { useMyFetch } from "~/composables/useMyFetch";
 import { useCartStore } from "~/store/cart";
+import { useQueryStore } from "~/store/query";
 import { useUserStore } from "~/store/user";
 
 const supabase = useSupabaseClient()
 const router = useRouter();
 const userStore = useUserStore();
 const cartStore = useCartStore();
+const queryStore = useQueryStore()
 
 await userStore.getUser(supabase);
 
@@ -66,11 +68,11 @@ const routes = [
     label: "How to order",
     active: false,
   },
-  {
-    href: `/about-us`,
-    label: "About us",
-    active: false,
-  },
+  // {
+  //     href: `/about-us`,
+  //     label: "About us",
+  //     active: false,
+  //   },
 ];
 
 const signOutHandler = async () => {
@@ -78,7 +80,6 @@ const signOutHandler = async () => {
   useRouter().push('/auth/signin')
 };
 
-const searchKey = ref("");
 
 const productSuggestions = ref<{ name: string; slug: string }[]>([]);
 
@@ -94,7 +95,7 @@ const getProductSuggestions = useDebounceFn(
     try {
       const { data } = await useMyFetch("/api/product-suggestions", {
         query: {
-          search: searchKey.value,
+          search: queryStore.queryParams.search,
         },
       });
       productSuggestionsLoading.value = false;
@@ -115,7 +116,7 @@ const hideProductSuggetions = useDebounceFn(() => {
 }, 150);
 
 const onSearchSubmit = () => {
-  router.push({ name: "products", query: { search: searchKey.value } });
+  router.push({ name: "products", query: { search: queryStore.queryParams.search, category: queryStore.queryParams.category } });
   showProductSuggestions.value = false;
 };
 
@@ -127,7 +128,7 @@ const isUserExist = computed(() => {
   }
 
   const isUserEmptyObject = JSON.stringify(userStore.user) === JSON.stringify({})
-  
+
   if (isUserEmptyObject) {
     return false
   }
@@ -147,9 +148,9 @@ const isUserExist = computed(() => {
           <ArrowLeft />
         </button>
         <form @submit.prevent="onSearchSubmit" class="items-center px-3 flex">
-          <input
+          <input type="text"
             class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-            placeholder="Search products..." v-model="searchKey" @input="() => {
+            placeholder="Search products..." v-model="queryStore.queryParams.search" @input="() => {
               productSuggestions = [];
               productSuggestionsLoading = true;
               getProductSuggestions();
@@ -184,7 +185,7 @@ const isUserExist = computed(() => {
         <div class="gap-5 items-center hidden lg:flex">
           <template v-for="route in routes" :key="route.href">
             <NuxtLink :to="route.href" :class="cn('text-sm font-medium transition-colors hover:text-primary')
-              " @click="() => (searchKey = '')">{{ route.label }}</NuxtLink>
+              " @click="() => (queryStore.queryParams.search = '')">{{ route.label }}</NuxtLink>
           </template>
         </div>
       </nav>
@@ -197,9 +198,9 @@ const isUserExist = computed(() => {
         </button>
         <form @submit.prevent="onSearchSubmit" class="items-center px-3 hidden md:flex">
           <Search class="mr-2 h-4 w-4 shrink-0 opacity-50" />
-          <input
+          <input type="text"
             class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-            placeholder="Search products..." v-model="searchKey" @input="() => {
+            placeholder="Search products..." v-model="queryStore.queryParams.search" @input="() => {
               productSuggestions = [];
               productSuggestionsLoading = true;
               getProductSuggestions();
@@ -250,21 +251,21 @@ const isUserExist = computed(() => {
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent class="z-[1001] mr-24 mt-4">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuLabel><span class="text-sm">My Account</span></DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <NuxtLink :to="'/profile/address'" class="flex items-center gap-2">
-                <Home class="w-5 h-5 mt-1" /> Address
+              <NuxtLink :to="'/profile/address'" class="flex items-center gap-2 text-sm">
+                <Home class="w-4 h-4 mt-1 lg:w-5 lg:h-5" />My Address
               </NuxtLink>
             </DropdownMenuItem>
             <DropdownMenuItem>
               <NuxtLink :to="'/orders'" class="flex items-center gap-2">
-                <ShoppingBag class="w-5 h-5 mt-1" /> My Orders
+                <ShoppingBag class="w-4 h-4 mt-1 lg:w-5 lg:h-5" /> My Orders
               </NuxtLink>
             </DropdownMenuItem>
             <AlertDialog>
-              <AlertDialogTrigger class="text-sm font-medium flex items-center gap-2 my-1 mx-2">
-                <LogOut class="w-5 h-5 mt-1" /> Sign out
+              <AlertDialogTrigger class="text-sm flex items-center gap-2 my-1 mx-2">
+                <LogOut class="w-4 h-4 mt-1 lg:w-5 lg:h-5" /> Sign out
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
