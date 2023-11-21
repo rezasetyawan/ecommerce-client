@@ -105,7 +105,7 @@ definePageMeta({
 </script>
 <template>
   <Toaster position="top-center" richColors />
-  <section class="m-5 lg:mx-20 lg:my-10 space-y-2">
+  <section class="m-5 lg:mx-20 lg:my-10 space-y-2" v-if="orders">
     <template v-for="order in orders" :key="order.id">
       <div class="p-3 rounded-lg shadow-md">
         <div class="flex gap-3 items-center">
@@ -118,7 +118,7 @@ definePageMeta({
           <div class="w-full space-y-2 lg:space-y-3">
             <template v-for="item in order.order_items" :key="item.id">
               <div class="flex gap-3 items-center">
-                <NuxtImg :src="item.image_url" class="w-14 lg:w-20" :alt="item.name" quality="50"/>
+                <NuxtImg :src="item.image_url ? item.image_url : ''" class="w-14 lg:w-20" :alt="item.name" quality="50"/>
                 <div class="w-full">
                   <h2 class="text-sm font-semibold truncate lg:text-base">
                     <NuxtLink :to="'/product/' + item.slug">{{
@@ -133,14 +133,14 @@ definePageMeta({
               </div>
             </template>
           </div>
-          <div class="w-full self-end text-xs flex justify-between mt-2 lg:text-base">
+          <div class="w-full self-end text-xs sm:flex justify-between mt-2 lg:text-base">
             <div>
               <p>Total</p>
               <p class="font-medium text-xs lg:text-base">{{ toRupiah(order.total) }}</p>
             </div>
 
             <!-- actions button -->
-            <div class="flex justify-end self-end items-end gap-2">
+            <div class="flex justify-end self-end items-end gap-2 max-sm:mt-3">
               <Button variant="link" class="whitespace-nowrap text-xs lg:text-sm" size="xs">
                 <NuxtLink :to="'/order/' + order.id">See detail</NuxtLink>
               </Button>

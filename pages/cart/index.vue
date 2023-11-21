@@ -173,7 +173,7 @@ definePageMeta({
           <div class="flex gap-2 items-center">
             <Checkbox @update:checked="() => handleProductSelectionChange(item.id)" class="w-5 h-5"
               :checked="selectedItemsId.includes(item.id)" />
-            <NuxtImg class="ascpet-square w-16 lg:w-24" :src="item.image_url" :alt="item.name" quality="50"/>
+            <NuxtImg class="ascpet-square w-16 lg:w-24" :src="item.image_url ? item.image_url : ''" :alt="item.name" quality="50"/>
             <div>
               <h3 class="text-base font-medium line-clamp-1">
                 <NuxtLink :to="'/product/' + item.slug">{{

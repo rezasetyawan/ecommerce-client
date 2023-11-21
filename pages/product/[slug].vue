@@ -251,7 +251,7 @@ useHead({
     <div class="sm:w-[40%] lg:w-[25%] h-full w-full bg-white">
       <Carousel :items-to-show="1">
         <Slide v-for="(image, key) in product?.images" :key="key" class="">
-          <NuxtImg :src="image.url" class="rounded-md object-contain aspect-[4/3]" :alt="product.name" quality="80" />
+          <NuxtImg :src="image.url ? image.url : ''" class="rounded-md object-contain aspect-[4/3]" :alt="product.name" quality="80" />
         </Slide>
         <template #addons>
           <Navigation />

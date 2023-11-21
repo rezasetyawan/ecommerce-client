@@ -306,7 +306,7 @@ definePageMeta({
       <div>
         <template v-for="product in cartStore.selectedCartItems">
           <div class="flex gap-3 mb-2">
-            <NuxtImg :src="product.image_url" class="w-14 lg:w-20" :alt="product.name" quality="50" />
+            <NuxtImg :src="product.image_url ? product.image_url : ''" class="w-14 lg:w-20" :alt="product.name" quality="50" />
             <div>
               <h2 class="text-sm font-medium lg:text-base">{{ product.name }}</h2>
               <div>
