@@ -100,7 +100,7 @@ onMounted(async () => {
 });
 
 onBeforeRouteUpdate(async (to, from) => {
-  if (to.fullPath === '/products?search=') {
+  if (to.fullPath === '/products?search=' || to.fullPath === '/products?category=' || to.fullPath === '/products?search=&category=') {
     cacheKey.value = '/products'
     await getProducts();
     return
@@ -138,7 +138,7 @@ const onChoseCategorySubmit = () => {
       <AlertDialog>
         <AlertDialogTrigger>
           <Button variant="outline">
-            <Filter class="stroke-slate-800 w-4 h-4 lg:w-5 lg:h-5"/>
+            <Filter class="stroke-slate-800 w-4 h-4 lg:w-5 lg:h-5" />
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
@@ -200,6 +200,10 @@ const onChoseCategorySubmit = () => {
       </div>
       <div class="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6" v-else>
         <ProductItemSkeleton />
+      </div>
+      <div v-if="!isLoading && products && !products.length" class="flex flex-col items-center justify-center">
+        <NuxtImg :src="'/images/product-not-found.jpg'" class="block w-full md:w-1/3" />
+        <p class="font-medium text-center text-base lg:text-lg">Product not found</p>
       </div>
     </section>
   </div>

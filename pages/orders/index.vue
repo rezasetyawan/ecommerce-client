@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import {
-AlertDialog,
-AlertDialogAction,
-AlertDialogCancel,
-AlertDialogContent,
-AlertDialogDescription,
-AlertDialogFooter,
-AlertDialogHeader,
-AlertDialogTitle,
-AlertDialogTrigger,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
 import { Button } from "~/components/ui/button";
 import { useMyFetch } from "~/composables/useMyFetch";
@@ -28,16 +28,27 @@ interface ApiResponse {
 const { $toast } = useNuxtApp();
 const userStore = useUserStore();
 const supabase = useSupabaseClient();
-
-const { data } = await useMyFetch("/api/orders", {
-  query: {
-    user: userStore.user?.id,
-  },
-});
+const user = computed(() => userStore.user)
 
 const orders = ref<Order[]>([]);
-const ordersData = data.value as ApiResponse;
-orders.value = ordersData.data.orders;
+
+const getOrders = async () => {
+  try {
+    const { data } = await useMyFetch("/api/orders", {
+      query: {
+        user: user.value?.id,
+      },
+    }); const ordersData = data.value as ApiResponse;
+    if (ordersData.data.orders) {
+      orders.value = ordersData.data.orders;
+    }
+
+    return
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 
 const getStatusMessage = (status: string) => {
   let statusMessage: string = "";
@@ -98,6 +109,15 @@ const cancelOrderHandler = async (orderId: string) => {
   }
 }
 
+
+onMounted(async () => {
+  await getOrders()
+})
+
+watch(user, async () => {
+    await getOrders()
+})
+
 definePageMeta({
   layout: 'my-layout',
   middleware: 'auth'
@@ -105,7 +125,7 @@ definePageMeta({
 </script>
 <template>
   <Toaster position="top-center" richColors />
-  <section class="m-5 lg:mx-20 lg:my-10 space-y-2" v-if="orders">
+  <section class="m-5 lg:mx-20 lg:my-10 space-y-2">
     <template v-for="order in orders" :key="order.id">
       <div class="p-3 rounded-lg shadow-md">
         <div class="flex gap-3 items-center">
@@ -118,7 +138,7 @@ definePageMeta({
           <div class="w-full space-y-2 lg:space-y-3">
             <template v-for="item in order.order_items" :key="item.id">
               <div class="flex gap-3 items-center">
-                <NuxtImg :src="item.image_url ? item.image_url : ''" class="w-14 lg:w-20" :alt="item.name" quality="50"/>
+                <NuxtImg :src="item.image_url ? item.image_url : ''" class="w-14 lg:w-20" :alt="item.name" quality="50" />
                 <div class="w-full">
                   <h2 class="text-sm font-semibold truncate lg:text-base">
                     <NuxtLink :to="'/product/' + item.slug">{{
