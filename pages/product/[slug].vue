@@ -46,56 +46,58 @@ interface ReviewApiResponse {
 
 const product = ref<ProductDetail>();
 
-const getProductInfo = async () => {
-  try {
-    const { data: productCache } = useNuxtData(slug.value)
+// const getProductInfo = async () => {
+//   try {
+// const { data: productCache } = useNuxtData(slug.value)
 
-    // TODO: FIX ERROR DATA IS UNDEFINED WHEN REFRESH PAGE
-    if (productCache.value?.data) {
-      product.value = productCache.value.data
-      return
-    }
+// // TODO: FIX ERROR DATA IS UNDEFINED WHEN REFRESH PAGE
+// if (productCache.value?.data) {
+//   product.value = productCache.value.data
+//   return
+// }
 
-    const { data: productResponse, pending } = await useMyFetch("/api/products/" + slug.value, {
-      key: slug.value
-    });
-    const productData = productResponse.value as ProductApiResponse;
-    product.value = productData.data;
-    console.log(productData)
+const { data: productResponse, pending } = await useMyFetch("/api/products/" + slug.value, {
+  key: slug.value
+});
+const productData = productResponse.value as ProductApiResponse;
+product.value = productData.data;
+console.log(productData)
 
-    if (!productData.data) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Product Not Found',
-        data: "Sorry, we couldn't find your desired product",
-        fatal: true
-      })
-    }
-    return
-
-  } catch (error: any) {
-    return $toast.error(error.message ? error.message : 'Failed to fetch product')
-  }
+if (!productData.data) {
+  throw createError({
+    statusCode: 404,
+    statusMessage: 'Product Not Found',
+    data: "Sorry, we couldn't find your desired product",
+    fatal: true
+  })
 }
+
+//     if (!product.value) await getProductInfo()
+//     return
+
+//   } catch (error: any) {
+//     return $toast.error(error.message ? error.message : 'Failed to fetch product')
+//   }
+// }
 
 const reviews = ref<Review[]>()
 const { data: reviewsCache } = useNuxtData(`${slug.value}-reviews`)
 reviews.value = reviewsCache.value?.data
 
-const getReviews = async () => {
-  try {
-    if (!reviews.value) {
-      const { data: reviewsResponse } = await useMyFetch('/api/product-reviews/' + product.value?.id, {
-        key: `${slug.value}-reviews`
-      })
-      const reviewData = reviewsResponse.value as ReviewApiResponse
-      reviews.value = reviewData.data
-      return reviews.value
-    }
-  } catch (error: any) {
-    return $toast.error(error.message ? error.message : 'Failed to fetch product reviews')
-  }
-}
+// const getReviews = async () => {
+//   try {
+//     if (!reviews.value) {
+const { data: reviewsResponse } = await useMyFetch('/api/product-reviews/' + product.value?.id, {
+  key: `${slug.value}-reviews`
+})
+const reviewData = reviewsResponse.value as ReviewApiResponse
+reviews.value = reviewData.data
+// return reviews.value
+//     }
+//   } catch (error: any) {
+//     return $toast.error(error.message ? error.message : 'Failed to fetch product reviews')
+//   }
+// }
 
 const seletedVariant = ref("");
 // seletedVariant.value = product.value?.variants.find(
@@ -217,16 +219,16 @@ const RATINGS = ['1', '2', '3', '4', '5']
 const showFullDesc = ref(false)
 
 onMounted(async () => {
-  const product = await getProductInfo()
-  const reviews = await getReviews()
+  // await getProductInfo()
+  // const reviews = await getReviews()
 
-  if (!product) {
-    await getProductInfo()
-  }
+  // if (!product) {
+  //   await getProductInfo()
+  // }
 
-  if (!reviews) {
-    await getReviews()
-  }
+  // if (!reviews) {
+  //   await getReviews()
+  // }
 })
 
 definePageMeta({
@@ -251,7 +253,8 @@ useHead({
     <div class="sm:w-[40%] lg:w-[25%] h-full w-full bg-white">
       <Carousel :items-to-show="1">
         <Slide v-for="(image, key) in product?.images" :key="key" class="">
-          <NuxtImg :src="image.url ? image.url : ''" class="rounded-md object-contain aspect-[4/3]" :alt="product.name" quality="80" />
+          <NuxtImg :src="image.url ? image.url : ''" class="rounded-md object-contain aspect-[4/3]" :alt="product.name"
+            quality="80" />
         </Slide>
         <template #addons>
           <Navigation />
