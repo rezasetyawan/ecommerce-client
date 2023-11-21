@@ -277,6 +277,11 @@ const renderPromiseToast = () => {
   });
 };
 
+useHead({
+  title: `Shipment | Ini Toko`,
+  titleTemplate: `Shipment | Ini Toko`,
+})
+
 definePageMeta({
   layout: 'my-layout',
   middleware: 'auth'

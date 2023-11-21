@@ -6,13 +6,13 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
-Select,
-SelectContent,
-SelectGroup,
-SelectItem,
-SelectLabel,
-SelectTrigger,
-SelectValue,
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue,
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { useUserStore } from "~/store/user";
@@ -210,6 +210,11 @@ onMounted(async () => {
         post_code: ''
     }
 });
+
+useHead({
+    title: `Address | Ini Toko`,
+    titleTemplate: `Address | Ini Toko`,
+})
 
 definePageMeta({
     layout: "my-layout",

@@ -164,6 +164,11 @@ onMounted(async () => {
   await getProvinceSuggestion();
 });
 
+useHead({
+  title: `New Address | Ini Toko`,
+  titleTemplate: `New Address | Ini Toko`,
+})
+
 definePageMeta({
   layout: "my-layout",
   middleware: 'auth'

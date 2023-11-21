@@ -118,6 +118,11 @@ watch(user, async () => {
     await getOrders()
 })
 
+useHead({
+  title: 'Orders | Ini Toko',
+  titleTemplate: 'Orders | Ini Toko'
+})
+
 definePageMeta({
   layout: 'my-layout',
   middleware: 'auth'

@@ -140,6 +140,11 @@ const onSubmitHandler = () => {
   });
 };
 
+useHead({
+  title: `Pay | Ini Toko`,
+  titleTemplate: `Pay | Ini Toko`,
+})
+
 definePageMeta({
   layout: "my-layout",
   middleware: 'auth'

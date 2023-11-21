@@ -74,11 +74,17 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   }
 });
 
+useHead({
+  title: `Signin | Ini Toko`,
+  titleTemplate: `Signin | Ini Toko`,
+})
+
 definePageMeta({
   layout: 'default'
 })
 </script>
 <template>
+  <HeadMetaData :title="'Signin'" />
   <Toaster position="top-center" richColors />
   <section class="flex flex-col justify-center items-center h-screen font-rubik px-4 md:px-0">
     <form class="w-full md:max-w-sm" @submit.prevent="onSubmitHandler">

@@ -88,7 +88,7 @@ useHead({
 
 </script>
 <template>
-  <HeadMetaData :ogImageUrl="billboards[0].image" />
+  <HeadMetaData />
   <div class="mx-auto">
     <template v-for="billboard in billboards">
       <div class="p-4 sm:p-6 lg:p-8 rounded-xl overflow-hidden">

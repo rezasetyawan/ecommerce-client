@@ -133,6 +133,7 @@ const onChoseCategorySubmit = () => {
 };
 </script>
 <template>
+  <HeadMetaData :title="'Products'"/>
   <div class="px-4 sm:px-6 lg:px-8 my-4">
     <div class="mb-2">
       <AlertDialog>

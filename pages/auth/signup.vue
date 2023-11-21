@@ -70,11 +70,17 @@ const signUpWithGoogleHandler = async () => {
   }
 };
 
+useHead({
+  title: `Signup | Ini Toko`,
+  titleTemplate: `Signup | Ini Toko`,
+})
+
 definePageMeta({
   layout: 'default'
 })
 </script>
 <template>
+  <HeadMetaData :title="'Signup'"/>
   <section class="flex flex-col justify-center items-center h-screen font-rubik px-4 md:px-0">
     <form class="w-full md:max-w-sm" @submit.prevent="onSubmitHandler">
       <h1 class="font-semibold text-3xl my-10 text-center">SignUp</h1>

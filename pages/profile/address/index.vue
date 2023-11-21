@@ -85,6 +85,11 @@ const sortedAddress = computed(() => {
   return addresses.value?.sort(compareByDefault);
 });
 
+useHead({
+  title: `Address | Ini Toko`,
+  titleTemplate: `Address | Ini Toko`,
+})
+
 definePageMeta({
   layout: "my-layout",
   middleware: 'auth'

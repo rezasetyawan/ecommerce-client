@@ -241,7 +241,8 @@ useHead({
 })
 </script>
 <template>
-  <HeadMetaData :og-image-url="product?.images[0].url" :title="slug.replaceAll('-', ' ')" />
+  <HeadMetaData :og-image-url="product?.images[0].url" :title="slug.replaceAll('-', ' ')"
+    :meta-description="product?.description" />
   <Toaster position="top-center" richColors />
   <div class="my-1 mx-1 z-10 sm:mx-2 sm:absolute lg:mx-8">
     <button @click="() => useRouter().go(-1)">

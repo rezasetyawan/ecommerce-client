@@ -54,6 +54,11 @@ const getStatusMessage = (status: string) => {
   return statusMessage;
 };
 
+useHead({
+  title: `${order.value.address.name}'s order | Ini Toko`,
+  titleTemplate: `${order.value.address.name}'s order | Ini Toko`,
+})
+
 definePageMeta({
   layout: 'my-layout',
   middleware: 'auth'

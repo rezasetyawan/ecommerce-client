@@ -41,8 +41,14 @@ const steps = [
         description: "Go back to orders page, and the order status will be changed after you pay the order. Track you order here, there's a received button that you can click to confirm if you already received the order. Once you received your order, you can click review button for review our product."
     },
 ]
+
+useHead({
+  title: 'How to order | Ini Toko',
+  titleTemplate: 'How to order | Ini Toko'
+})
 </script>
 <template>
+    <HeadMetaData :title="'Products'"/>
     <section class="mx-3 relative border border-transparent lg:mx-20 xl:mx-40">
         <NuxtLink class="absolute p-3 top-0" :to="'/'">
             <ArrowLeft />
