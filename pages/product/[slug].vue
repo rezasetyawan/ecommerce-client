@@ -61,7 +61,6 @@ const { data: productResponse, pending } = await useMyFetch("/api/products/" + s
 });
 const productData = productResponse.value as ProductApiResponse;
 product.value = productData.data;
-console.log(productData)
 
 if (!productData.data) {
   throw createError({
@@ -138,8 +137,6 @@ const subtotal = computed(() => {
 
 const productInfo = ref<HTMLElement | null>(null);
 const isProductInfoInViewport = useElementVisibility(productInfo);
-
-watch(isProductInfoInViewport, () => console.log(isProductInfoInViewport.value))
 
 const addItemToCart = async () => {
   try {
@@ -229,7 +226,15 @@ onMounted(async () => {
   // if (!reviews) {
   //   await getReviews()
   // }
+
 })
+// console.log(useRouter().options.history.state.back)
+
+// onBeforeRouteUpdate(async (to, from) => {
+//   console.log(from)
+//   console.log(to)
+// })
+
 
 definePageMeta({
   layout: "my-layout",

@@ -24,7 +24,7 @@ interface ProductsApiResponse {
   data: Product[];
 }
 
-interface categoriesApiResponse {
+interface CategoriesApiResponse {
   data: Category[];
 }
 
@@ -40,7 +40,6 @@ queryStore.setQueryParams(route.query.search as string || "", route.query.catego
 
 const getProducts = async () => {
   try {
-    console.log(cacheKey.value)
     isLoading.value = true
     const { data: productsCache } = useNuxtData(cacheKey.value)
     if (productsCache.value?.data) {
@@ -78,7 +77,7 @@ const getCategories = async () => {
       key: 'categories'
     });
 
-    const categoriesApiResponse = data.value as categoriesApiResponse;
+    const categoriesApiResponse = data.value as CategoriesApiResponse;
     categories.value = categoriesApiResponse.data;
     return
   } catch (error: any) {
@@ -87,8 +86,6 @@ const getCategories = async () => {
 }
 
 onMounted(async () => {
-  cacheKey.value = route.fullPath
-
   if (route.fullPath === '/products?search=') {
     cacheKey.value = '/products'
   }
@@ -171,7 +168,7 @@ const onChoseCategorySubmit = () => {
       </AlertDialog>
     </div>
     <section class="space-y-4">
-      <div class="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6"
+      <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6"
         v-if="!isLoading">
         <template v-for="product in products">
           <NuxtLink class="bg-white group cursor-pointer rounded-xl border p-1 space-y-2 lg:text-p-3"
