@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 import { Eye, EyeOff } from "lucide-vue-next";
-import { Input } from "../../components/ui/input";
-import { Button } from "../../components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Button } from "~/components/ui/button";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useRuntimeConfig } from "nuxt/app";
@@ -24,9 +24,10 @@ const signInUser = async () => {
     const { data, error } = await supabase.auth.signInWithPassword(user.value);
 
     if (error) {
-      return console.log(error.message);
+      throw new Error(error.message)
     }
-    router.push("/");
+
+    return router.push("/");
   } catch (err: any) {
     throw new Error(err.message)
   } finally {
@@ -51,7 +52,7 @@ const onSubmitHandler = async () => {
   return $toast.promise(signInUser, {
     loading: "Loading...",
     success: (data) => {
-      return `Sign in success`;
+      return `Signin success`;
     },
     error: (data: any) => (data.message ? `${data.message}` : "Failed to signin"),
   });
@@ -61,21 +62,29 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   if (event === "SIGNED_IN") {
     if (session) {
       const user = session.user;
-      const userData = {
-        id: user.id,
-        name: user.user_metadata.full_name,
-        email: user.email,
-      };
-      await supabase.from("users").insert(userData as never);
+      if (user.app_metadata.provider !== 'email') {
+        const userData = {
+          id: user.id,
+          name: user.user_metadata.full_name,
+          email: user.email,
+        };
+        await supabase.from("users").upsert(userData as never);
+      }
     }
   }
 });
+
+useHead({
+  title: `Signin | Ini Toko`,
+  titleTemplate: `Signin | Ini Toko`,
+})
 
 definePageMeta({
   layout: 'default'
 })
 </script>
 <template>
+  <HeadMetaData :title="'Signin'" />
   <Toaster position="top-center" richColors />
   <section class="flex flex-col justify-center items-center h-screen font-rubik px-4 md:px-0">
     <form class="w-full md:max-w-sm" @submit.prevent="onSubmitHandler">

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// TODO: REFACTOR THIS
 import { useElementVisibility } from "@vueuse/core";
 import { ArrowLeft } from "lucide-vue-next";
 import { ref } from "vue";
@@ -43,9 +44,22 @@ interface ReviewApiResponse {
   data: Review[]
 }
 
-const { data: productResponse, pending } = await useMyFetch("/api/products/" + slug.value);
-const productData = productResponse.value as ProductApiResponse;
 const product = ref<ProductDetail>();
+
+// const getProductInfo = async () => {
+//   try {
+// const { data: productCache } = useNuxtData(slug.value)
+
+// // TODO: FIX ERROR DATA IS UNDEFINED WHEN REFRESH PAGE
+// if (productCache.value?.data) {
+//   product.value = productCache.value.data
+//   return
+// }
+
+const { data: productResponse, pending } = await useMyFetch("/api/products/" + slug.value, {
+  key: slug.value
+});
+const productData = productResponse.value as ProductApiResponse;
 product.value = productData.data;
 
 if (!productData.data) {
@@ -56,20 +70,52 @@ if (!productData.data) {
     fatal: true
   })
 }
-  
-const { data: reviewsResponse } = await useMyFetch('/api/product-reviews/' + product.value?.id)
-const reviews = ref<Review[]>([])
+
+//     if (!product.value) await getProductInfo()
+//     return
+
+//   } catch (error: any) {
+//     return $toast.error(error.message ? error.message : 'Failed to fetch product')
+//   }
+// }
+
+const reviews = ref<Review[]>()
+const { data: reviewsCache } = useNuxtData(`${slug.value}-reviews`)
+reviews.value = reviewsCache.value?.data
+
+// const getReviews = async () => {
+//   try {
+//     if (!reviews.value) {
+const { data: reviewsResponse } = await useMyFetch('/api/product-reviews/' + product.value?.id, {
+  key: `${slug.value}-reviews`
+})
 const reviewData = reviewsResponse.value as ReviewApiResponse
 reviews.value = reviewData.data
+// return reviews.value
+//     }
+//   } catch (error: any) {
+//     return $toast.error(error.message ? error.message : 'Failed to fetch product reviews')
+//   }
+// }
 
-const seletedVariant = ref<string>();
-seletedVariant.value = product.value.variants.find(
-  (variant) => variant.is_default === true
-)?.id;
+const seletedVariant = ref("");
+// seletedVariant.value = product.value?.variants.find(
+//   (variant) => variant.is_default === true
+// )?.id;
 
-const price = ref(product.value.price);
+watch(product, () => {
+  seletedVariant.value = product.value?.variants.find(
+    (variant) => variant.is_default === true
+  )?.id as string
+}, { immediate: true })
+
+const price = ref(0);
+if (product.value) {
+  price.value = product.value.price
+}
+
 const variant = ref("");
-variant.value = product.value.variants.find(
+variant.value = product.value?.variants.find(
   (variant) => variant.is_default === true
 )?.value as string;
 
@@ -91,8 +137,6 @@ const subtotal = computed(() => {
 
 const productInfo = ref<HTMLElement | null>(null);
 const isProductInfoInViewport = useElementVisibility(productInfo);
-
-watch(isProductInfoInViewport, () => console.log(isProductInfoInViewport.value))
 
 const addItemToCart = async () => {
   try {
@@ -148,7 +192,7 @@ const totalRating = computed(() => {
 })
 
 const getRatingPercentageAndCounts = (rating: string) => {
-  if (!reviews.value.length) {
+  if (!reviews.value || !reviews.value.length) {
     return {
       percentage: 0,
       counts: 0
@@ -171,24 +215,52 @@ const RATINGS = ['1', '2', '3', '4', '5']
 
 const showFullDesc = ref(false)
 
+onMounted(async () => {
+  // await getProductInfo()
+  // const reviews = await getReviews()
+
+  // if (!product) {
+  //   await getProductInfo()
+  // }
+
+  // if (!reviews) {
+  //   await getReviews()
+  // }
+
+})
+// console.log(useRouter().options.history.state.back)
+
+// onBeforeRouteUpdate(async (to, from) => {
+//   console.log(from)
+//   console.log(to)
+// })
+
+
 definePageMeta({
   layout: "my-layout",
 });
 
+useHead({
+  title: slug.value.replaceAll('-', ' ') + '|' + 'Ini Toko',
+  titleTemplate: slug.value.replaceAll('-', ' ') + ' | ' + 'Ini Toko',
+})
 </script>
 <template>
+  <HeadMetaData :og-image-url="product?.images[0].url" :title="slug.replaceAll('-', ' ')"
+    :meta-description="product?.description" />
   <Toaster position="top-center" richColors />
   <div class="my-1 mx-1 z-10 sm:mx-2 sm:absolute lg:mx-8">
-    <NuxtLink :to="'/products'">
+    <button @click="() => useRouter().go(-1)">
       <ArrowLeft />
-    </NuxtLink>
+    </button>
   </div>
   <section v-if="product"
     class="sm:flex gap-8 m-2 mt-4 lg:w-[65%] xl:w-[70%] sm:mx-10 lg:m-10 lg:mx-20 font-rubik relative border-b lg:pb-10">
     <div class="sm:w-[40%] lg:w-[25%] h-full w-full bg-white">
       <Carousel :items-to-show="1">
         <Slide v-for="(image, key) in product?.images" :key="key" class="">
-          <img :src="image.url" class="rounded-md object-contain aspect-[4/3]" />
+          <NuxtImg :src="image.url ? image.url : ''" class="rounded-md object-contain aspect-[4/3]" :alt="product.name"
+            quality="80" />
         </Slide>
         <template #addons>
           <Navigation />
@@ -198,7 +270,7 @@ definePageMeta({
     </div>
 
     <!-- product info -->
-    <div class="sm:w-[70%]" ref="productInfo">
+    <div class="sm:w-[70%]" ref="productInfo" v-if="reviews && product">
       <h2 class="text-lg font-semibold lg:text-2xl">{{ product?.name }}</h2>
       <div class="flex items-center gap-2 text-sm lg:text-base">
         <p>{{ product.sold }} <span class="font-medium">Sold</span></p>
@@ -273,7 +345,7 @@ definePageMeta({
 
   <!-- product reviews section -->
   <section>
-    <div v-if="reviews" class="mx-2 lg:w-[65%] lg:mx-20 xl:w-[70%] sm:flex sm:mx-10 gap-10">
+    <div v-if="reviews && product" class="mx-2 lg:w-[65%] lg:mx-20 xl:w-[70%] sm:flex sm:mx-10 gap-10">
       <!-- user rating stat -->
       <div class="w-full max-md:border-b max-md:pb-4 sm:w-[40%] md:w-min">
         <h2 class="text-lg whitespace-nowrap font-medium lg:text-xl">Product Reviews</h2>
@@ -315,7 +387,7 @@ definePageMeta({
   </section>
   <!-- end of product reviews section -->
 
-  <div class="fixed w-full bottom-0 bg-white lg:hidden">
+  <div class="fixed w-full bottom-0 z-20 bg-white lg:hidden">
     <Button class="w-full rounded-none" @click="renderPromiseToast">Add to cart</Button>
   </div>
   <ProductDetailSkeleton v-if="!product" />

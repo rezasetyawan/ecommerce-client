@@ -68,7 +68,7 @@ const onSubmitHandler = async () => {
 <template>
     <Toaster position="top-center" richColors />
     <div class="sm:flex gap-3 transition-all duration-300 rounded-lg" :class="{ 'h-0 hidden': !showComponent }">
-        <img :src="props.item.image_url" class="w-full h-full sm:w-28 sm:h-28" :alt="props.item.product_name">
+        <NuxtImg :src="props.item.image_url ? props.item.image_url : ''" class="w-full h-full sm:w-28 sm:h-28" :alt="props.item.product_name" quality="80"/>
         <div class="w-full">
             <h2 class="font-medium text-sm lg:text-base">{{ props.item.product_name }}</h2>
             <StarRating :read-only="false" :ratingValue="reviewData.rating" @ratingSelected="(value: number) => reviewData

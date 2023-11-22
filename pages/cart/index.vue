@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Trash2 } from "lucide-vue-next";
+import { ref } from "vue";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,20 +12,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
-import { Trash2 } from "lucide-vue-next";
-import { ref } from "vue";
+import { Button } from "~/components/ui/button";
+import { Checkbox } from "~/components/ui/checkbox";
 import { useCartStore } from "~/store/cart";
+import { useUserStore } from "~/store/user";
+import { CartItem } from "~/types";
 import { toRupiah } from "~/utils";
-import { Button } from "../../components/ui/button";
-import { Checkbox } from "../../components/ui/checkbox";
-import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
-import { useUserStore } from "../../store/user";
-import { CartItem } from "../../types";
 import {
   deleteCartItem,
-  deleteMultipleCartItem,
+  deleteCartItems,
   getCartItems,
-} from "../../utils/useCart";
+} from "~/utils/useCart";
+import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
 
 const { $toast } = useNuxtApp();
 const userStore = useUserStore();
@@ -39,21 +39,12 @@ cartItems.value = (await getCartItems(
 )) as CartItem[];
 
 
-
 const deleteLocalCartItem = (id: string) => {
   const index = cartItems.value?.findIndex((item) => item.id === id);
 
   if (index !== -1 && index !== undefined) {
     cartItems.value?.splice(index, 1);
   }
-};
-const deleteCartItemHanlder = async (id: string) => {
-  try {
-    await deleteCartItem(supabase, id);
-    deleteLocalCartItem(id);
-
-    await cartStore.getCartItemCounts(supabase, userStore.user?.cart_id as string);
-  } catch (error) { }
 };
 
 const selectedItemsId = ref<string[]>([]);
@@ -76,7 +67,7 @@ const selectedItems = computed(() => {
   });
 });
 
-const totalPriceOfSelectedItems = computed(() => {
+const selectedItemsTotalPrice = computed(() => {
   return selectedItems.value
     ? selectedItems.value.reduce((accumulator, currentValue) => {
       return accumulator + currentValue.price * currentValue.quantity;
@@ -98,20 +89,33 @@ const selectAllItemHandler = async (isChecked: boolean) => {
   }
 };
 
-const deleteSelectedItems = async () => {
+const deleteCartItemHanlder = async (id: string) => {
+  try {
+    await deleteCartItem(supabase, id);
+    deleteLocalCartItem(id);
+
+    await cartStore.getCartItemCounts(supabase, userStore.user?.cart_id as string);
+    return $toast.success('Items deleted')
+  } catch (error: any) {
+    return $toast.error(error.message ? error.message : 'Failed to delete product')
+  }
+};
+
+const deleteSelectedCartItems = async () => {
   try {
     if (selectedItemsId.value.length > 0) {
-      await deleteMultipleCartItem(supabase, selectedItemsId.value);
+      await deleteCartItems(supabase, selectedItemsId.value);
 
       await cartStore.getCartItemCounts(supabase, userStore.user?.cart_id as string);
 
-      // delete local cart items
+      // delete local (memory) cart items
       cartItems.value = cartItems.value?.filter(
         (item) => !selectedItemsId.value.includes(item.id)
       );
     }
-  } catch (error) {
-    console.error(error);
+    return $toast.success('Items deleted')
+  } catch (error: any) {
+    return $toast.error(error.message ? error.message : 'Failed to delete order')
   }
 };
 
@@ -126,15 +130,20 @@ const checkoutHandler = () => {
   router.push("/cart/shipment");
 };
 
+useHead({
+  title: `Cart | Ini Toko`,
+  titleTemplate: `Cart | Ini Toko`,
+})
+
 definePageMeta({
-    layout: 'my-layout',
-    middleware: 'auth'
+  layout: 'my-layout',
+  middleware: 'auth'
 });
 </script>
 <template>
   <Toaster position="top-center" richColors />
-  <section v-if="cartItems" class="sm:flex gap-8 m-2 lg:m-10 font-rubik mb-[1200px] relative">
-    <div class="md:w-[60%] lg:w-[75%]">
+  <section v-if="cartItems" class="sm:flex gap-8 m-2 lg:m-10 font-rubik relative">
+    <div class="w-full md:w-[65%] lg:w-[70%]">
       <div class="border-b p-2">
         <h2 class="text-lg font-semibold w-full mb-2 pb-2 lg:text-2xl">Cart</h2>
         <div class="flex justify-between items-center">
@@ -157,7 +166,7 @@ definePageMeta({
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction @click="deleteSelectedItems()">Continue</AlertDialogAction>
+                <AlertDialogAction @click="deleteSelectedCartItems()">Continue</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -169,7 +178,8 @@ definePageMeta({
           <div class="flex gap-2 items-center">
             <Checkbox @update:checked="() => handleProductSelectionChange(item.id)" class="w-5 h-5"
               :checked="selectedItemsId.includes(item.id)" />
-            <img class="ascpet-square w-16 lg:w-24" :src="item.image_url" />
+            <NuxtImg class="ascpet-square w-16 lg:w-24" :src="item.image_url ? item.image_url : ''" :alt="item.name"
+              quality="50" />
             <div>
               <h3 class="text-base font-medium line-clamp-1">
                 <NuxtLink :to="'/product/' + item.slug">{{
@@ -204,30 +214,33 @@ definePageMeta({
         </div>
       </template>
     </div>
-    <div class="border rounded-lg p-3 flex-col justify-between fixed bg-white right-10 hidden md:flex">
+    <div
+      class="border rounded-lg p-3 flex-col justify-between fixed bg-white right-2 hidden md:flex md:w-[30%] lg:w-[25%] lg:right-10">
       <div>
-        <h3 class="font-medium text-lg">Shopping summary</h3>
-        <p class="text-base my-2"></p>
-        <div class="flex gap-3 items-center w-full max-w-full text-slate-500 text-[14px] flex-wrap">
+        <h3 class="font-medium text-sm xl:text-base">Shopping summary</h3>
+        <div class="flex gap-3 items-center w-full max-w-full text-slate-500 text-[14px] flex-wrap text-sm xl:text-base">
           <p class="">Total Price ({{ selectedItems?.length }} products)</p>
-          <p class="">{{ toRupiah(totalPriceOfSelectedItems) }}</p>
+          <p class="">{{ toRupiah(selectedItemsTotalPrice) }}</p>
         </div>
         <div class="xl:flex justify-between items-center my-5">
-          <p class="font-medium">Subtotal:</p>
-          <p>{{ toRupiah(totalPriceOfSelectedItems) }}</p>
+          <p class="font-medium text-sm xl:text-base">Subtotal:</p>
+          <p class="text-sm xl:text-base">{{ toRupiah(selectedItemsTotalPrice) }}</p>
         </div>
       </div>
 
       <div class="mt-12">
-        <Button class="w-full" @click="checkoutHandler">Checkout</Button>
+        <Button @click="checkoutHandler" class="w-full text-xs lg:text-sm">Checkout</Button>
       </div>
     </div>
   </section>
-  <div class="fixed bottom-0 left-0 w-full flex justify-end items-center bg-white p-3 gap-3 md:hidden">
+
+  <!-- checkout section for mobile phone -->
+  <div class="fixed bottom-0 left-0 w-full flex justify-end items-center border shadow-sm bg-white p-3 gap-3 md:hidden">
     <div class="text-xs">
       <p>Subtotal</p>
-      <p>{{ toRupiah(totalPriceOfSelectedItems) }}</p>
+      <p>{{ toRupiah(selectedItemsTotalPrice) }}</p>
     </div>
     <Button size="sm" class="text-sm">Checkout ({{ selectedItems?.length }})</Button>
   </div>
+  <!-- end of mobile checkout section -->
 </template>

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ArrowLeft } from "lucide-vue-next";
+import { Button } from "~/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -15,9 +17,7 @@ import { Address, OrderData, PaymentData } from "~/types";
 import { toRupiah } from "~/utils";
 import { getUserMainAddress } from "~/utils/useAddress";
 import { addOrder, addOrderProduct, addPayment } from "~/utils/useOrder";
-import { Button } from "../../components/ui/button";
 import { useSupabaseClient } from "../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
-import { ArrowLeft } from "lucide-vue-next";
 
 interface Shipment {
   service: string;
@@ -56,6 +56,8 @@ interface ShipmentCostResponse {
 }
 
 const { $toast } = useNuxtApp();
+
+// TODO: ADD INFO TABLE
 const storeAddress = ref({
   name: "Ini Toko",
   full_address: "Jl.jalan",
@@ -188,8 +190,8 @@ onMounted(async () => {
     userStore.user?.id as string
   );
   address.value = addressData as Address;
-  console.log(addressData)
 
+  // get items weight
   const checkoutItemsData = await Promise.all(
     cartStore.selectedCartItems.map(async (item) => {
       const { data, error } = await supabase
@@ -208,13 +210,10 @@ onMounted(async () => {
   );
 
   checkoutItems.value = checkoutItemsData as CheckoutItem[];
-  console.log(checkoutItems.value);
 
   const shipmentData = await getShipmentCost();
   shipmentCost.value = shipmentData;
 });
-
-watch(openShipmentItem, () => openShipmentItem.value);
 
 const onSubmitHandler = async () => {
   try {
@@ -278,33 +277,41 @@ const renderPromiseToast = () => {
   });
 };
 
+useHead({
+  title: `Shipment | Ini Toko`,
+  titleTemplate: `Shipment | Ini Toko`,
+})
+
 definePageMeta({
-    layout: 'my-layout',
-    middleware: 'auth'
+  layout: 'my-layout',
+  middleware: 'auth'
 });
 </script>
 <template>
-   <div class="my-1 mx-1 z-10 sm:mx-20 md:mx-28 sm:absolute lg:mx-64">
-    <NuxtLink :to="'/cart'" class="p-3 w-auto block"><ArrowLeft /></NuxtLink>
+  <div class="my-1 mx-1 z-10 sm:mx-20 md:mx-28 sm:absolute lg:mx-32 xl:mx-64">
+    <NuxtLink :to="'/cart'" class="p-3 w-auto block">
+      <ArrowLeft />
+    </NuxtLink>
   </div>
-  <section class="mx-5 my-3 sm:mx-28 md:mx-40 lg:my-10 lg:mx-80">
+  <section class="mx-5 my-3 sm:mx-28 md:mx-40 lg:my-10 lg:mx-48 xl:mx-80">
     <Toaster position="top-center" richColors />
     <div>
       <h2 class="font-semibold border-b w-full pb-1 text-sm lg:pb-2 lg:text-base">Shipping Address</h2>
-      <div class="text-xs mt-3 lg:text-sm">
+      <NuxtLink :to="'/profile/address'" class="text-xs mt-3 block relative lg:text-sm">
+        <span class="text-xs absolute top-1 right-1">Change address</span>
         <p class="font-semibold">{{ address?.name }}</p>
         <p class="">{{ address?.phone_number }}</p>
         <p>
           {{ address?.full_address }}, {{ address?.district }},
           {{ address?.city }}, {{ address?.province }}
         </p>
-      </div>
+      </NuxtLink>
     </div>
     <div class="mt-8 gap-10 w-full justify-between sm:flex">
       <div>
         <template v-for="product in cartStore.selectedCartItems">
           <div class="flex gap-3 mb-2">
-            <img :src="product.image_url" class="w-14 lg:w-20" />
+            <NuxtImg :src="product.image_url ? product.image_url : ''" class="w-14 lg:w-20" :alt="product.name" quality="50" />
             <div>
               <h2 class="text-sm font-medium lg:text-base">{{ product.name }}</h2>
               <div>
@@ -335,7 +342,8 @@ definePageMeta({
                     JNE {{ data.service }}
                   </p>
 
-                  <div class="flex gap-10 text-sm justify-between w-full" v-show="!(selectedShipmentService === data.service)">
+                  <div class="flex gap-10 text-sm justify-between w-full"
+                    v-show="!(selectedShipmentService === data.service)">
                     <div class="w-20">
                       <p class="font-semibold">JNE {{ data.service }}</p>
                       <p>{{ data.etd }} days</p>
@@ -355,5 +363,4 @@ definePageMeta({
     </div>
 
     <Button class="w-full mt-10 text-xs lg:text-sm" @click="renderPromiseToast">Checkout</Button>
-  </section>
-</template>
+  </section></template>

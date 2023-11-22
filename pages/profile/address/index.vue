@@ -1,13 +1,6 @@
 <script setup lang="ts">
+import { Trash2, ArrowLeft } from "lucide-vue-next";
 import { ref } from "vue";
-import { useUserStore } from "~/store/user";
-import { Address } from "~/types";
-import { getUserAddresses, deleteAddress } from "~/utils/useAddress";
-import { useSupabaseClient } from "../../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
-import { definePageMeta } from "../../../node_modules/nuxt/dist/pages/runtime/composables";
-import { Trash2 } from "lucide-vue-next";
-import { Badge } from "../../../components/ui/badge";
-import { Button } from "../../../components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +12,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
+import { useUserStore } from "~/store/user";
+import { Address } from "~/types";
+import { deleteAddress, getUserAddresses } from "~/utils/useAddress";
+import { useSupabaseClient } from "../../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
+import { definePageMeta } from "../../../node_modules/nuxt/dist/pages/runtime/composables";
 
 const { $toast } = useNuxtApp();
 const supabase = useSupabaseClient();
@@ -33,6 +33,8 @@ onMounted(async () => {
   addresses.value = addressData;
 });
 
+
+// delete address in database and locally (memory)
 const deleteAddressHandler = async (addressId: string) => {
   try {
     await deleteAddress(supabase, addressId)
@@ -47,6 +49,7 @@ const deleteAddressHandler = async (addressId: string) => {
   }
 }
 
+// setting user default address in databse and locally (memory)
 const setAddressAsDefault = async (addressId: string) => {
   try {
     if (!addresses.value) return
@@ -69,19 +72,23 @@ const setAddressAsDefault = async (addressId: string) => {
 }
 
 const compareByDefault = (a: Address, b: Address) => {
-      if (a.is_default && !b.is_default) {
-        return -1;
-      } else if (!a.is_default && b.is_default) {
-        return 1;
-      } else {
-        return 0;
-      }
-    };
+  if (a.is_default && !b.is_default) {
+    return -1;
+  } else if (!a.is_default && b.is_default) {
+    return 1;
+  } else {
+    return 0;
+  }
+};
 
-    // Computed property
-    const sortedArray = computed(() => {
-      return addresses.value?.slice().sort(compareByDefault);
-    });
+const sortedAddress = computed(() => {
+  return addresses.value?.sort(compareByDefault);
+});
+
+useHead({
+  title: `Address | Ini Toko`,
+  titleTemplate: `Address | Ini Toko`,
+})
 
 definePageMeta({
   layout: "my-layout",
@@ -91,14 +98,22 @@ definePageMeta({
 <template>
   <Toaster position="top-center" richColors />
   <section class="p-3 md:mx-20 lg:mx-40 ">
-    <div class="flex justify-end">
-      <Button>
-        <NuxtLink :to="'/profile/address/new'" size="sm" class="text-sm lg:text-sm">Add address</NuxtLink>
-      </Button>
+    <div class="flex justify-between items-center">
+      <div class="">
+        <button @click="() => useRouter().go(-1)" class="p-3 w-auto block">
+          <ArrowLeft />
+        </button>
+      </div>
+
+      <div class="flex justify-end">
+        <Button>
+          <NuxtLink :to="'/profile/address/new'" size="sm" class="text-sm lg:text-sm">Add address</NuxtLink>
+        </Button>
+      </div>
     </div>
 
     <div class="mt-5 space-y-2 transition-all duration-700">
-      <template v-for="data in sortedArray">
+      <template v-for="data in sortedAddress">
         <div class="border rounded-lg p-3 space-y-1.5 relative">
           <AlertDialog>
             <AlertDialogTrigger as-child>

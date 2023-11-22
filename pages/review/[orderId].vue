@@ -40,6 +40,11 @@ if (!apiResponse.data) {
 }
 reviewItems.value = apiResponse.data
 
+useHead({
+  title: `Review | Ini Toko`,
+  titleTemplate: `Review | Ini Toko`,
+})
+
 definePageMeta({
     layout: "my-layout",
     middleware: 'auth'

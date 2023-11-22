@@ -2,22 +2,22 @@
 import { ArrowLeft } from "lucide-vue-next";
 import { nanoid } from "nanoid";
 import { ref } from "vue";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { Label } from "../../../components/ui/label";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "../../../components/ui/select";
-import { Textarea } from "../../../components/ui/textarea";
+Select,
+SelectContent,
+SelectGroup,
+SelectItem,
+SelectLabel,
+SelectTrigger,
+SelectValue,
+} from "~/components/ui/select";
+import { Textarea } from "~/components/ui/textarea";
+import { useUserStore } from "~/store/user";
+import { isUserHaveDefaultAddress } from "~/utils/useAddress";
 import { useSupabaseClient } from "../../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
-import { definePageMeta } from "../../../node_modules/nuxt/dist/pages/runtime/composables";
-import { useUserStore } from "../../../store/user";
 
 const { $toast } = useNuxtApp();
 const userStore = useUserStore();
@@ -41,6 +41,7 @@ const address = ref({
   full_address: "",
 });
 
+// get province choices
 const getProvinceSuggestion = async () => {
   interface ProvinceData {
     status: number;
@@ -60,6 +61,7 @@ const getProvinceSuggestion = async () => {
   provinceChoices.value = tranformedProvinceData;
 };
 
+// get city choiches
 const getCities = async () => {
   interface CityData {
     status: number;
@@ -79,6 +81,7 @@ const getCities = async () => {
   cityChoices.value = tranformedCityData;
 };
 
+// get district choices
 const getDistricts = async () => {
   interface DistrictData {
     status: number;
@@ -116,29 +119,11 @@ watch(
   { deep: true }
 );
 
-const isUserHaveDefaultAddress = async () => {
-  try {
-    const { data, error } = await supabase
-      .from("addresses").select('id').eq('is_default', true).eq('user_id', userStore.user?.id as string)
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    if (!data.length) return false
-
-    return true
-
-  } catch (error: any) {
-    throw new Error(error.message)
-  }
-}
-
 const addNewAddress = async () => {
   try {
     isLoading.value = true
 
-    const isSetAsDefaultAddress = await isUserHaveDefaultAddress()
+    const isSetAsDefaultAddress = await isUserHaveDefaultAddress(supabase, userStore.user?.id as string)
     const addressData = {
       id: nanoid(16),
       user_id: userStore.user?.id,
@@ -150,6 +135,7 @@ const addNewAddress = async () => {
       district: address.value.ditrict,
       is_default: !isSetAsDefaultAddress
     };
+
     const { error } = await supabase
       .from("addresses")
       .insert(addressData as never);
@@ -177,6 +163,11 @@ const onSubmitHandler = async () => {
 onMounted(async () => {
   await getProvinceSuggestion();
 });
+
+useHead({
+  title: `New Address | Ini Toko`,
+  titleTemplate: `New Address | Ini Toko`,
+})
 
 definePageMeta({
   layout: "my-layout",

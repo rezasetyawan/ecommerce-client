@@ -2,11 +2,9 @@
 // TODO: REFACTOR ALL CODE IN THIS FILE
 import { ArrowLeft } from "lucide-vue-next";
 import { ref } from "vue";
-import { Address } from "~/types";
-import { getAddress } from "~/utils/useAddress";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { Label } from "../../../components/ui/label";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import {
     Select,
     SelectContent,
@@ -15,12 +13,12 @@ import {
     SelectLabel,
     SelectTrigger,
     SelectValue,
-} from "../../../components/ui/select";
-import { Textarea } from "../../../components/ui/textarea";
+} from "~/components/ui/select";
+import { Textarea } from "~/components/ui/textarea";
+import { useUserStore } from "~/store/user";
+import { Address } from "~/types";
+import { getAddress, updateAddress } from "~/utils/useAddress";
 import { useSupabaseClient } from "../../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient";
-import { definePageMeta } from "../../../node_modules/nuxt/dist/pages/runtime/composables";
-import { useUserStore } from "../../../store/user";
-import { updateAddress } from "~/utils/useAddress"
 
 const { $toast } = useNuxtApp();
 const userStore = useUserStore();
@@ -48,7 +46,7 @@ const address = ref({
     full_address: "",
 });
 
-
+// get province choices
 const getProvinceSuggestion = async () => {
     interface ProvinceData {
         status: number;
@@ -68,6 +66,7 @@ const getProvinceSuggestion = async () => {
     provinceChoices.value = tranformedProvinceData;
 };
 
+// get city choices
 const getCities = async () => {
     interface CityData {
         status: number;
@@ -87,6 +86,7 @@ const getCities = async () => {
     cityChoices.value = tranformedCityData;
 };
 
+// get distrtcs choices
 const getDistricts = async () => {
     interface DistrictData {
         status: number;
@@ -109,6 +109,7 @@ const getDistricts = async () => {
 watch(
     address,
     async () => {
+        // get city choices base on selected province
         if (address.value.province_code) {
             await getCities()
             address.value.province_name = provinceChoices.value.filter(
@@ -116,6 +117,7 @@ watch(
             )[0].name;
         }
 
+        // get city district base on selected province
         if (address.value.city_code) {
             await getDistricts()
             address.value.city_name = cityChoices.value.filter(
@@ -123,12 +125,14 @@ watch(
             )[0].name;
         }
 
+        // get city code from user address inital value
         if (address.value.province_code && cityChoices.value.length && !address.value.city_code) {
             address.value.city_code = cityChoices.value.filter(item => {
                 return item.name.toLowerCase() === addressInitialValue.value?.city.toLowerCase()
             })[0].code
         }
 
+        // get distict value from user address inital value
         if (address.value.city_code && districtChoices.value.length && !address.value.ditrict) {
             address.value.ditrict = districtChoices.value.filter(item => {
                 return item.name.toLowerCase() === addressInitialValue.value?.district.toLowerCase()
@@ -139,6 +143,7 @@ watch(
 );
 
 watch(addressInitialValue, () => {
+    // get province code from user address inital value
     if (addressInitialValue.value?.province && provinceChoices.value.length) {
         address.value.province_code = provinceChoices.value.filter(item => {
             return item.name.toLowerCase() === addressInitialValue.value?.province.toLowerCase()
@@ -164,8 +169,6 @@ const updateAddressData = async () => {
         };
 
         await updateAddress(supabase, addressId.value, addressData)
-
-
     } catch (error: any) {
         throw new Error(error.message)
     } finally {
@@ -207,6 +210,11 @@ onMounted(async () => {
         post_code: ''
     }
 });
+
+useHead({
+    title: `Address | Ini Toko`,
+    titleTemplate: `Address | Ini Toko`,
+})
 
 definePageMeta({
     layout: "my-layout",

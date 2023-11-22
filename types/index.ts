@@ -132,4 +132,8 @@ interface OrderDetail {
     subtotal: number
 }
 
-export type { Address, CartItem, Order, OrderData, OrderDetail, OrderItem, PaymentData, Product, ProductDetail, ShipmentData, UpdateAddress }
+interface Category {
+    id: string;
+    name: string
+}
+export type { Address, CartItem, Order, OrderData, OrderDetail, OrderItem, PaymentData, Product, ProductDetail, ShipmentData, UpdateAddress, Category }

@@ -40,12 +40,10 @@ const addOrder = async (client: SupabaseClient, orderData: OrderData, shipmentDa
         const { error: shipmentError } = await client.from('order_shipment').insert(shipment)
 
         if (error) {
-            console.log(error.message)
             throw new Error(error.message)
         }
 
         if (shipmentError) {
-            console.log(shipmentError.message)
             throw new Error(shipmentError.message)
         }
 
@@ -88,4 +86,43 @@ const updateOrderStatus = async (client: SupabaseClient, orderId: string, status
     }
 }
 
-export { addOrder, addPayment, addOrderProduct, updateOrderStatus }
+const getOrderStatus = async (client: SupabaseClient, orderId: string) => {
+    try {
+        const { data, error } = await client
+            .from("orders")
+            .select("status")
+            .eq("id", orderId)
+            .single();
+
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        return data.status;
+    } catch (error: any) {
+        throw new Error(error.message)
+    }
+};
+
+const getOrderProductVariantIds = async (client: SupabaseClient, orderId: string) => {
+    try {
+        const { data: variants, error } = await client
+            .from("order_products")
+            .select("variant_id")
+            .eq("order_id", orderId);
+
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        const data = variants.map((variant) => {
+            return variant.variant_id as string;
+        });
+
+        return data;
+    } catch (error: any) {
+        throw new Error(error.message);
+    }
+};
+
+export { addOrder, addPayment, addOrderProduct, updateOrderStatus, getOrderStatus, getOrderProductVariantIds }
